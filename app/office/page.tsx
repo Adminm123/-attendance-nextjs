@@ -58,6 +58,10 @@ export default function OfficePage() {
   // Track which date each report was last loaded for (avoid re-fetch on tab switch)
   const loadedRef = useRef<Partial<Record<Tab, string>>>({});
 
+  // Track previous present keys to detect new check-ins
+  const prevPresentRef = useRef<Set<string>>(new Set());
+  const [newRowKeys,   setNewRowKeys] = useState<Set<string>>(new Set());
+
   // ─── Login ────────────────────────────────────────────────────────────────────
   const handleLogin = async () => {
     setLog(true);
@@ -73,28 +77,51 @@ export default function OfficePage() {
   };
 
   // ─── Fetch dashboard ──────────────────────────────────────────────────────────
-  const fetchDashboard = async () => {
+  const fetchDashboard = async (silent = false) => {
     try {
       const res  = await fetch('/api/dashboard');
       const data = await res.json();
-      setBranches(data.dashboard || []);
+      const newBranches: Branch[] = data.dashboard || [];
+
+      // Detect newly checked-in employees
+      const incoming = new Set<string>();
+      newBranches.forEach(b => b.present.forEach(p => incoming.add(`${b.id}:${p.name}`)));
+      const added = new Set<string>();
+      incoming.forEach(k => { if (!prevPresentRef.current.has(k)) added.add(k); });
+      prevPresentRef.current = incoming;
+
+      if (added.size > 0 && silent) {
+        toast(`🟢 เช็คอินใหม่ ${added.size} คน`, 'success');
+        setNewRowKeys(added);
+        setTimeout(() => setNewRowKeys(new Set()), 4000);
+      }
+
+      setBranches(newBranches);
       setLastUpd(new Date().toLocaleTimeString('th-TH', { timeZone:'Asia/Bangkok', hour12:false }));
-    } catch { toast('โหลด dashboard ไม่สำเร็จ', 'error'); }
+    } catch { if (!silent) toast('โหลด dashboard ไม่สำเร็จ', 'error'); }
   };
 
   // ─── Fetch report by type + date ─────────────────────────────────────────────
-  const fetchReport = async (t: Tab, date: string) => {
+  const fetchReport = async (t: Tab, date: string, force = false) => {
     if (t === 'dashboard') return;
-    if (t === 'summary')   return; // summary has its own button
+    if (t === 'summary')   return;
     const cacheKey = `${t}:${date}`;
-    if (loadedRef.current[t] === cacheKey) return; // already loaded for this date
+    if (!force && loadedRef.current[t] === cacheKey) return;
     setRL(true);
     try {
       const res  = await fetch(`/api/reports?type=${t}&date=${date}`);
       const data = await res.json();
+
       if (t === 'absent') setAbsent(data.absent  || []);
       if (t === 'late')   setLate(data.records   || []);
-      if (t === 'logs')   setLogs(data.records   || []);
+      if (t === 'logs') {
+        const incoming: any[] = data.records || [];
+        // Detect new log entries vs previous list
+        if (force && logsList.length > 0 && incoming.length > logsList.length) {
+          toast(`🟢 บันทึกใหม่ ${incoming.length - logsList.length} รายการ`, 'success');
+        }
+        setLogs(incoming);
+      }
       loadedRef.current[t] = cacheKey;
     } catch { toast('โหลดข้อมูลไม่สำเร็จ', 'error'); }
     finally { setRL(false); }
@@ -110,15 +137,22 @@ export default function OfficePage() {
     finally { setRL(false); }
   };
 
-  // ─── Auto-refresh dashboard every 60s ────────────────────────────────────────
+  // ─── Auto-refresh dashboard every 15s ────────────────────────────────────────
   useEffect(() => {
     if (!authed) return;
     fetchDashboard();
-    const id = setInterval(fetchDashboard, 60000);
+    const id = setInterval(() => fetchDashboard(true), 15000);
     return () => clearInterval(id);
   }, [authed]);
 
-  // ─── Load report when tab or date changes ─────────────────────────────────────
+  // ─── Auto-refresh logs/absent/late every 30s when on that tab ────────────────
+  useEffect(() => {
+    if (!authed || tab === 'dashboard' || tab === 'summary') return;
+    const id = setInterval(() => fetchReport(tab, rDate, true), 30000);
+    return () => clearInterval(id);
+  }, [authed, tab, rDate]);
+
+  // ─── Load report when tab or date changes ────────────────────────────────────
   useEffect(() => {
     if (authed && tab !== 'dashboard' && tab !== 'summary') {
       fetchReport(tab, rDate);
@@ -127,14 +161,13 @@ export default function OfficePage() {
 
   const handleDateChange = (d: string) => {
     setRDate(d);
-    // Invalidate cache for current tab so it re-fetches
     loadedRef.current[tab] = undefined;
   };
 
   const refreshAll = () => {
     loadedRef.current = {};
     fetchDashboard();
-    if (tab !== 'dashboard' && tab !== 'summary') fetchReport(tab, rDate);
+    if (tab !== 'dashboard' && tab !== 'summary') fetchReport(tab, rDate, true);
   };
 
   // ─── KPI values ───────────────────────────────────────────────────────────────
@@ -205,7 +238,11 @@ export default function OfficePage() {
         </nav>
 
         <div className="side-foot">
-          <div>อัพเดท: <strong style={{ color:'rgba(255,255,255,.65)' }}>{lastUpd || '—'} น.</strong></div>
+          <div style={{ marginBottom:6 }}>
+            <span className="live-dot" />
+            <span style={{ fontSize:10, color:'rgba(255,255,255,.4)', letterSpacing:'.1em', textTransform:'uppercase' }}>LIVE · 15s</span>
+          </div>
+          <div style={{ fontSize:11, color:'rgba(255,255,255,.5)' }}>อัพเดท: <strong style={{ color:'rgba(255,255,255,.65)' }}>{lastUpd || '—'}</strong></div>
           <button onClick={refreshAll} style={{ marginTop:10, fontSize:10, color:'rgba(255,255,255,.5)', background:'none', border:'1px solid rgba(255,255,255,.15)', padding:'4px 10px', borderRadius:6, cursor:'pointer', fontFamily:'inherit' }}>
             🔄 รีเฟรช
           </button>
@@ -271,12 +308,15 @@ export default function OfficePage() {
                     {expanded === b.id && (
                       <div style={{ borderTop:'1px solid var(--line)', padding:'12px 20px', background:'var(--bg)' }}>
                         <Section label={`เข้างานแล้ว (${b.present.length})`} color="var(--success)" show={b.present.length > 0}>
-                          {b.present.map(p => (
-                            <Row key={p.name}>
-                              <span>{p.nickname ? <b style={{ color:'#C5962A' }}>({p.nickname})</b> : null} {p.name}{p.isCross && <Tag cls="chip-warn">ข้ามสาขา</Tag>}</span>
-                              <span style={{ color:'var(--muted)', fontVariantNumeric:'tabular-nums' }}>{p.time}</span>
-                            </Row>
-                          ))}
+                          {b.present.map(p => {
+                            const rk = `${b.id}:${p.name}`;
+                            return (
+                              <Row key={p.name} isNew={newRowKeys.has(rk)}>
+                                <span>{p.nickname ? <b style={{ color:'#C5962A' }}>({p.nickname})</b> : null} {p.name}{p.isCross && <Tag cls="chip-warn">ข้ามสาขา</Tag>}</span>
+                                <span style={{ color:'var(--muted)', fontVariantNumeric:'tabular-nums' }}>{p.time}</span>
+                              </Row>
+                            );
+                          })}
                         </Section>
                         <Section label={`ไปช่วยสาขาอื่น (${b.crossBranch.length})`} color="var(--warn)" show={b.crossBranch.length > 0}>
                           {b.crossBranch.map(p => <Row key={p.name}><span>{p.nickname ? <b style={{ color:'#C5962A' }}>({p.nickname})</b> : null} {p.name}</span></Row>)}
@@ -511,9 +551,10 @@ function Section({ label, color, show, children }: { label: string; color: strin
   );
 }
 
-function Row({ children }: { children: React.ReactNode }) {
+function Row({ children, isNew }: { children: React.ReactNode; isNew?: boolean }) {
   return (
-    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'6px 0', borderBottom:'1px solid var(--line-2)', fontSize:13 }}>
+    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'6px 0', borderBottom:'1px solid var(--line-2)', fontSize:13,
+      ...(isNew ? { animation:'rowSlideIn .55s ease-out forwards', borderRadius:6, paddingLeft:4 } : {}) }}>
       {children}
     </div>
   );
