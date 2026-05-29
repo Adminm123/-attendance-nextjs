@@ -18,7 +18,23 @@ export default function LineLoginButton({ className }: { className?: string }) {
       const res  = await fetch('/api/auth/line-url');
       const data = await res.json();
       if (data.url) {
-        window.location.href = data.url;
+        // On iOS PWA (WKWebView), window.location.href doesn't trigger LINE app.
+        // Opening via _blank forces Safari which handles the LINE deep link properly.
+        const isIOSPWA =
+          /iphone|ipad|ipod/i.test(navigator.userAgent) &&
+          window.matchMedia('(display-mode: standalone)').matches;
+        if (isIOSPWA) {
+          const a = document.createElement('a');
+          a.href = data.url;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => setLoading(false), 1500);
+        } else {
+          window.location.href = data.url;
+        }
       } else {
         alert('ไม่สามารถเชื่อมต่อ LINE ได้ กรุณาลองใหม่');
         setLoading(false);
