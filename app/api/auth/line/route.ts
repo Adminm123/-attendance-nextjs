@@ -61,8 +61,8 @@ export async function GET(request: NextRequest) {
     });
     return NextResponse.redirect(new URL('/link', request.url));
 
-  } catch (err) {
-    console.error('LINE auth error:', err);
-    return NextResponse.redirect(new URL('/?error=auth_failed', request.url));
+  } catch (err: any) {
+    const msg = encodeURIComponent(String(err?.message || err).slice(0, 200));
+    return NextResponse.redirect(new URL(`/?error=${msg}`, request.url));
   }
 }
