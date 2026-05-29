@@ -1,6 +1,6 @@
 {
-  "name": "M Technologies · ระบบเช็คชื่อ",
-  "short_name": "M-Attendance",
+  "name": "Attendance",
+  "short_name": "Attendance",
   "description": "ระบบเช็คชื่อพนักงานด้วยใบหน้า",
   "start_url": "/",
   "display": "standalone",

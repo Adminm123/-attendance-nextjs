@@ -129,27 +129,13 @@ export default function HomeClient({ user }: Props) {
 
   return (
     <>
-      {/* Appbar */}
-      <header style={{ background: 'var(--navy-900)', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 9, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: 'var(--navy-900)', fontWeight: 700, fontSize: 13, fontFamily: 'monospace' }}>AT</span>
-          </div>
-          <div>
-            <div style={{ color: '#fff', fontWeight: 700, fontSize: 15 }}>ระบบเช็คชื่อ</div>
-            <div style={{ color: 'rgba(255,255,255,.45)', fontSize: 9, letterSpacing: '.18em', textTransform: 'uppercase' }}>ATTENDANCE</div>
-          </div>
+      {user && (
+        <div style={{ background:'var(--navy-900)', padding:'6px 16px', display:'flex', justifyContent:'flex-end', borderBottom:'1px solid rgba(255,255,255,.06)' }}>
+          <button onClick={handleLogout} style={{ color:'rgba(255,255,255,.5)', fontSize:11, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
+            ออกจากระบบ
+          </button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <a href="/office"  style={{ color: 'rgba(255,255,255,.55)', fontSize: 11, fontWeight: 600, letterSpacing: '.08em', textDecoration: 'none', padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,255,255,.15)' }}>Office</a>
-          <a href="/manager" style={{ color: 'rgba(255,255,255,.55)', fontSize: 11, fontWeight: 600, letterSpacing: '.08em', textDecoration: 'none', padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,255,255,.15)' }}>Mgr</a>
-          {user && (
-            <button onClick={handleLogout} style={{ color: 'rgba(255,255,255,.4)', fontSize: 11, background: 'none', border: 'none', cursor: 'pointer', paddingLeft: 4 }}>
-              ออก
-            </button>
-          )}
-        </div>
-      </header>
+      )}
 
       <div className="shell" style={{ paddingTop: 20 }}>
 
@@ -162,11 +148,11 @@ export default function HomeClient({ user }: Props) {
             <div style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 48 }}>
               {new Date().toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </div>
-            <div className="card" style={{ padding: '40px 28px' }}>
-              <div style={{ fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 28, fontWeight: 600 }}>ATTENDANCE SYSTEM</div>
-              <div style={{ fontSize: 22, fontWeight: 600, lineHeight: 2.2, padding: '16px 0 8px' }}>เข้าสู่ระบบ</div>
-              <p style={{ color: 'var(--muted)', fontSize: 13, marginTop: 0, marginBottom: 36, lineHeight: 2.4, padding: '10px 0' }}>
-                ใช้ LINE เพื่อยืนยันตัวตน<br />ครั้งแรกเท่านั้น ครั้งต่อไปจำอัตโนมัติ
+            <div className="card" style={{ padding: '36px 28px' }}>
+              <div style={{ fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 20, fontWeight: 600 }}>M Technologies</div>
+              <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>เข้าสู่ระบบ</div>
+              <p style={{ color: 'var(--muted)', fontSize: 13, marginTop: 0, marginBottom: 28, lineHeight: 1.8 }}>
+                ล็อกอินด้วย LINE ครั้งแรกครั้งเดียว ระบบจำให้เอง
               </p>
               <LineLoginButton />
             </div>

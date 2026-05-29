@@ -158,17 +158,10 @@ export default function ManagerPage() {
   // ══════════════════════════════════════════════════════════════
   if (view === 'login') return (
     <>
-      <header style={{ background:'var(--navy-900)', padding:'14px 18px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <div>
-          <div style={{ fontSize:9, letterSpacing:'.18em', textTransform:'uppercase', color:'rgba(255,255,255,.4)', marginBottom:3 }}>MANAGER</div>
-          <div style={{ color:'#fff', fontWeight:700, fontSize:16 }}>จัดการพนักงาน</div>
-        </div>
-        <a href="/" style={{ color:'rgba(255,255,255,.5)', fontSize:11, fontWeight:600, textDecoration:'none', padding:'5px 10px', borderRadius:7, border:'1px solid rgba(255,255,255,.15)' }}>← Home</a>
-      </header>
       <div className="shell" style={{ paddingTop:20 }}>
         <div className="card" style={{ marginTop:40, padding:'40px 28px' }}>
-          <div className="eyebrow" style={{ textAlign:'center', marginBottom:16 }}>Restricted Access</div>
-          <div style={{ fontSize:20, fontWeight:600, textAlign:'center', marginBottom:24, lineHeight:1.5 }}>เข้าสู่ระบบ Manager</div>
+          <div className="eyebrow" style={{ textAlign:'center', marginBottom:16 }}>Manager</div>
+          <div style={{ fontSize:20, fontWeight:700, textAlign:'center', marginBottom:24 }}>รหัสผ่าน</div>
           <input
             type="password" placeholder="••••••••" value={pwd}
             onChange={e => setPwd(e.target.value)} onKeyDown={e => e.key==='Enter' && handleLogin()}
@@ -188,18 +181,11 @@ export default function ManagerPage() {
   // ══════════════════════════════════════════════════════════════
   return (
     <>
-      <header style={{ background:'var(--navy-900)', padding:'14px 18px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <div>
-          <div style={{ fontSize:9, letterSpacing:'.18em', textTransform:'uppercase', color:`rgba(${hexRgb(GOLD)},.7)`, marginBottom:3 }}>Manager · Console</div>
-          <div style={{ color:'#fff', fontWeight:700, fontSize:16 }}>จัดการพนักงาน</div>
-        </div>
-        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-          <a href="/" style={{ color:'rgba(255,255,255,.5)', fontSize:11, fontWeight:600, textDecoration:'none', padding:'5px 10px', borderRadius:7, border:'1px solid rgba(255,255,255,.15)' }}>← Home</a>
-          <button onClick={() => setView('login')} style={{ fontSize:10, fontWeight:600, letterSpacing:'.16em', textTransform:'uppercase', color:'rgba(255,255,255,.4)', background:'none', border:'none', cursor:'pointer' }}>
-            Sign out
-          </button>
-        </div>
-      </header>
+      <div style={{ background:'var(--navy-900)', padding:'8px 16px', display:'flex', justifyContent:'flex-end', borderBottom:'1px solid rgba(255,255,255,.06)' }}>
+        <button onClick={() => setView('login')} style={{ fontSize:11, color:'rgba(255,255,255,.5)', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
+          ออกจากระบบ
+        </button>
+      </div>
 
       <div className="shell" style={{ paddingTop:20 }}>
 

@@ -183,17 +183,10 @@ export default function OfficePage() {
   // ══════════════════════════════════════════════════════════════
   if (!authed) return (
     <>
-      <header style={{ background:'var(--navy-900)', padding:'14px 18px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <div>
-          <div style={{ color:'rgba(255,255,255,.45)', fontSize:9, letterSpacing:'.18em', textTransform:'uppercase' }}>OFFICE</div>
-          <div style={{ color:'#fff', fontWeight:700, fontSize:16 }}>Dashboard สำนักงาน</div>
-        </div>
-        <a href="/" style={{ color:'rgba(255,255,255,.5)', fontSize:11, fontWeight:600, textDecoration:'none', padding:'5px 10px', borderRadius:7, border:'1px solid rgba(255,255,255,.15)' }}>← Home</a>
-      </header>
       <div className="shell" style={{ paddingTop:20 }}>
         <div className="card" style={{ marginTop:40, padding:'40px 28px' }}>
-          <div className="eyebrow" style={{ textAlign:'center', marginBottom:16 }}>Restricted Access</div>
-          <div style={{ fontSize:20, fontWeight:600, textAlign:'center', marginBottom:24 }}>เข้าสู่ระบบ Office</div>
+          <div className="eyebrow" style={{ textAlign:'center', marginBottom:16 }}>Office</div>
+          <div style={{ fontSize:20, fontWeight:700, textAlign:'center', marginBottom:24 }}>รหัสผ่าน</div>
           <input type="password" placeholder="••••••••" value={pwd}
             onChange={e => setPwd(e.target.value)} onKeyDown={e => e.key==='Enter' && handleLogin()}
             style={{ width:'100%', padding:'12px 16px', borderRadius:12, border:'1px solid var(--line)', fontSize:18, textAlign:'center', letterSpacing:'.25em', marginBottom:14, outline:'none', fontFamily:'inherit' }}
@@ -261,8 +254,7 @@ export default function OfficePage() {
             <h1 style={{ margin:0, fontSize:18, fontWeight:600 }}>{NAV.find(n => n.key===tab)?.label}</h1>
           </div>
           <div style={{ display:'flex', gap:8 }}>
-            <a href="/" style={{ fontSize:11, color:'var(--muted)', textDecoration:'none', padding:'6px 10px', borderRadius:8, border:'1px solid var(--line)', fontWeight:600 }}>← Home</a>
-            <button onClick={refreshAll} style={{ fontSize:12, color:'var(--muted)', background:'none', border:'1px solid var(--line)', padding:'6px 12px', borderRadius:8, cursor:'pointer', fontFamily:'inherit' }}>🔄</button>
+            <button onClick={refreshAll} style={{ fontSize:12, color:'var(--muted)', background:'none', border:'1px solid var(--line)', padding:'6px 12px', borderRadius:8, cursor:'pointer', fontFamily:'inherit' }}>🔄 รีเฟรช</button>
           </div>
         </div>
 
