@@ -170,6 +170,9 @@ export default function ManagerPage() {
           <button onClick={handleLogin} disabled={loading} className="btn btn-primary" style={{ width:'100%', padding:16 }}>
             {loading ? 'กำลังตรวจสอบ...' : 'เข้าสู่ระบบ'}
           </button>
+          <a href="/" style={{ display:'block', textAlign:'center', marginTop:14, fontSize:13, color:'var(--muted)', textDecoration:'none' }}>
+            ← กลับหน้าหลัก
+          </a>
         </div>
       </div>
       <ToastContainer toasts={toasts} />

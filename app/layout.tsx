@@ -47,8 +47,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body style={{ fontFamily: "'IBM Plex Sans Thai', 'IBM Plex Sans', system-ui, sans-serif" }}>
         <PwaRegister />
         <NavBar />
-        {children}
         <div className="dev-banner">DEVELOPED BY M. THATSANAPHONG</div>
+        {children}
       </body>
     </html>
   );
