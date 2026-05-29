@@ -140,9 +140,12 @@ export default function ManagerPage() {
   // ══════════════════════════════════════════════════════════════
   if (view === 'login') return (
     <>
-      <header style={{ background: 'var(--navy-900)', padding: '14px 18px' }}>
-        <div style={{ fontSize: 9, letterSpacing: '.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,.4)', marginBottom: 3 }}>MANAGER</div>
-        <div style={{ color: '#fff', fontWeight: 700, fontSize: 16 }}>จัดการพนักงาน</div>
+      <header style={{ background: 'var(--navy-900)', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontSize: 9, letterSpacing: '.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,.4)', marginBottom: 3 }}>MANAGER</div>
+          <div style={{ color: '#fff', fontWeight: 700, fontSize: 16 }}>จัดการพนักงาน</div>
+        </div>
+        <a href="/" style={{ color: 'rgba(255,255,255,.5)', fontSize: 11, fontWeight: 600, textDecoration: 'none', padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,255,255,.15)' }}>← Home</a>
       </header>
       <div className="shell" style={{ paddingTop: 20 }}>
         <div className="card" style={{ marginTop: 40, padding: '40px 28px' }}>
@@ -177,12 +180,15 @@ export default function ManagerPage() {
           <div style={{ fontSize: 9, letterSpacing: '.18em', textTransform: 'uppercase', color: `rgba(${hexToRgb(GOLD)},.7)`, marginBottom: 3 }}>Manager · Console</div>
           <div style={{ color: '#fff', fontWeight: 700, fontSize: 16 }}>จัดการพนักงาน</div>
         </div>
-        <button
-          onClick={() => setView('login')}
-          style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,.45)', background: 'none', border: 'none', cursor: 'pointer' }}
-        >
-          Sign out
-        </button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <a href="/" style={{ color: 'rgba(255,255,255,.5)', fontSize: 11, fontWeight: 600, letterSpacing: '.08em', textDecoration: 'none', padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,255,255,.15)' }}>← Home</a>
+          <button
+            onClick={() => setView('login')}
+            style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,.4)', background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            Sign out
+          </button>
+        </div>
       </header>
 
       <div className="shell" style={{ paddingTop: 20 }}>

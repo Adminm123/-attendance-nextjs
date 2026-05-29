@@ -128,9 +128,12 @@ export default function OfficePage() {
 
   if (!authed) return (
     <>
-      <header style={{ background: 'var(--navy-900)', padding: '14px 18px' }}>
-        <div style={{ color: 'rgba(255,255,255,.45)', fontSize: 9, letterSpacing: '.18em', textTransform: 'uppercase' }}>OFFICE</div>
-        <div style={{ color: '#fff', fontWeight: 700, fontSize: 16 }}>Dashboard สำนักงาน</div>
+      <header style={{ background: 'var(--navy-900)', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ color: 'rgba(255,255,255,.45)', fontSize: 9, letterSpacing: '.18em', textTransform: 'uppercase' }}>OFFICE</div>
+          <div style={{ color: '#fff', fontWeight: 700, fontSize: 16 }}>Dashboard สำนักงาน</div>
+        </div>
+        <a href="/" style={{ color: 'rgba(255,255,255,.5)', fontSize: 11, fontWeight: 600, textDecoration: 'none', padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,255,255,.15)' }}>← Home</a>
       </header>
       <div className="shell" style={{ paddingTop: 20 }}>
         <div className="card" style={{ marginTop: 40, padding: '32px 24px' }}>
@@ -209,9 +212,12 @@ export default function OfficePage() {
               {navItems.find(n => n.key === tab)?.label || 'Dashboard'}
             </h1>
           </div>
-          <button onClick={() => { loadDashboard(); loadReport(tab); }} style={{ fontSize: 12, color: 'var(--muted)', background: 'none', border: '1px solid var(--line)', padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
-            🔄 รีเฟรช
-          </button>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <a href="/" style={{ fontSize: 11, color: 'var(--muted)', textDecoration: 'none', padding: '6px 10px', borderRadius: 8, border: '1px solid var(--line)', fontWeight: 600 }}>← Home</a>
+            <button onClick={() => { loadDashboard(); loadReport(tab); }} style={{ fontSize: 12, color: 'var(--muted)', background: 'none', border: '1px solid var(--line)', padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+              🔄
+            </button>
+          </div>
         </div>
 
         <div className="office-content">

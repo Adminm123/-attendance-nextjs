@@ -140,11 +140,15 @@ export default function HomeClient({ user }: Props) {
             <div style={{ color: 'rgba(255,255,255,.45)', fontSize: 9, letterSpacing: '.18em', textTransform: 'uppercase' }}>ATTENDANCE</div>
           </div>
         </div>
-        {user && (
-          <button onClick={handleLogout} style={{ color: 'rgba(255,255,255,.5)', fontSize: 12, background: 'none', border: 'none', cursor: 'pointer' }}>
-            ออกจากระบบ
-          </button>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <a href="/office"  style={{ color: 'rgba(255,255,255,.55)', fontSize: 11, fontWeight: 600, letterSpacing: '.08em', textDecoration: 'none', padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,255,255,.15)' }}>Office</a>
+          <a href="/manager" style={{ color: 'rgba(255,255,255,.55)', fontSize: 11, fontWeight: 600, letterSpacing: '.08em', textDecoration: 'none', padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,255,255,.15)' }}>Mgr</a>
+          {user && (
+            <button onClick={handleLogout} style={{ color: 'rgba(255,255,255,.4)', fontSize: 11, background: 'none', border: 'none', cursor: 'pointer', paddingLeft: 4 }}>
+              ออก
+            </button>
+          )}
+        </div>
       </header>
 
       <div className="shell" style={{ paddingTop: 20 }}>
