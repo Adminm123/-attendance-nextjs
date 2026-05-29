@@ -8,14 +8,23 @@ import './globals.css';
 
 // ─── Metadata = <title>, <meta> สำหรับ SEO และ PWA ─────────────────────────────
 export const metadata: Metadata = {
-  title:       'Attendance · ระบบเช็คชื่อ',
+  title:       'M Technologies · ระบบเช็คชื่อ',
   description: 'ระบบเช็คชื่อพนักงานด้วยใบหน้าและ LINE Login',
-  manifest:    '/manifest.json', // PWA manifest
-  // iOS PWA settings
+  manifest:    '/manifest.json',
+  icons: {
+    icon:  [
+      { url: '/favicon.png',   type: 'image/png' },
+      { url: '/icon-192.png',  type: 'image/png', sizes: '192x192' },
+      { url: '/icon-512.png',  type: 'image/png', sizes: '512x512' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
   appleWebApp: {
-    capable:         true,
-    statusBarStyle:  'default',
-    title:           'Attendance',
+    capable:        true,
+    statusBarStyle: 'default',
+    title:          'M-Attendance',
   },
 };
 
