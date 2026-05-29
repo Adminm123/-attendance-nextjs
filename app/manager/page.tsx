@@ -17,8 +17,15 @@ interface Branch {
 }
 
 const GOLD = '#C5962A';
-const inp: React.CSSProperties  = { width:'100%', padding:'11px 14px', borderRadius:10, border:'1px solid var(--line)', fontSize:14, outline:'none', fontFamily:'inherit', color:'var(--ink)', background:'#fff' };
-const lbl: React.CSSProperties  = { fontSize:11, color:'var(--muted)', marginBottom:5, display:'block', letterSpacing:'.06em', textTransform:'uppercase' as const, fontWeight:500 };
+const inp: React.CSSProperties = { width:'100%', padding:'11px 14px', borderRadius:10, border:'1px solid var(--line)', fontSize:14, outline:'none', fontFamily:'inherit', color:'var(--ink)', background:'#fff' };
+const lbl: React.CSSProperties = { fontSize:11, color:'var(--muted)', marginBottom:5, display:'block', letterSpacing:'.06em', textTransform:'uppercase' as const, fontWeight:500 };
+
+const TABS: { key: Tab; label: string }[] = [
+  { key: 'staff',      label: 'พนักงาน' },
+  { key: 'add',        label: '+ เพิ่ม'  },
+  { key: 'branches',   label: 'สาขา'    },
+  { key: 'add-branch', label: '+ สาขา'  },
+];
 
 export default function ManagerPage() {
   const { toasts, toast } = useToast();
@@ -31,13 +38,11 @@ export default function ManagerPage() {
   const [branches,  setBranches]= useState<Branch[]>([]);
   const [search,    setSearch]  = useState('');
 
-  // ─── Add staff form (แยก prefix / ชื่อ / นามสกุล) ──────────────────────────────
   const [form, setForm] = useState({
     prefix: 'นาย', firstName: '', lastName: '', nickname: '', mainBranchId: '',
   });
   const [adding, setAdding] = useState(false);
 
-  // ─── Add branch form ──────────────────────────────────────────────────────────
   const [branchForm, setBF] = useState({
     id:'', name:'', province:'',
     totalStaff:'', minStaff:'',
@@ -171,7 +176,7 @@ export default function ManagerPage() {
             {loading ? 'กำลังตรวจสอบ...' : 'เข้าสู่ระบบ'}
           </button>
           <a href="/" style={{ display:'block', textAlign:'center', marginTop:14, fontSize:13, color:'var(--muted)', textDecoration:'none' }}>
-            ← กลับหน้าหลัก
+            กลับหน้าหลัก
           </a>
         </div>
       </div>
@@ -184,36 +189,46 @@ export default function ManagerPage() {
   // ══════════════════════════════════════════════════════════════
   return (
     <>
-      <div style={{ background:'var(--navy-900)', padding:'8px 16px', display:'flex', justifyContent:'flex-end', borderBottom:'1px solid rgba(255,255,255,.06)' }}>
-        <button onClick={() => setView('login')} style={{ fontSize:11, color:'rgba(255,255,255,.5)', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
-          ออกจากระบบ
-        </button>
-      </div>
-
       <div className="shell" style={{ paddingTop:20 }}>
 
-        {/* KPI */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:16 }}>
-          {[
-            { lbl:'ทั้งหมด',     val: staffList.length,                                                                        cls:'' },
-            { lbl:'พร้อมใช้',    val: staffList.filter(s => s.status==='Active' && s.hasDescriptors).length,                    cls:'acc-green' },
-            { lbl:'รอดำเนินการ', val: staffList.filter(s => s.status!=='Inactive' && (!s.lineId || !s.hasDescriptors)).length,  cls:'acc-warn' },
-          ].map(k => (
-            <div key={k.lbl} className={`kpi ${k.cls}`} style={{ padding:'14px 16px' }}>
-              <div className="lbl">{k.lbl}</div>
-              <div className="num" style={{ fontSize:26 }}>{k.val}</div>
+        {/* Header */}
+        <div style={{ padding:'20px 0 16px', borderBottom:'1px solid var(--line)', marginBottom:20 }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+            <div>
+              <div style={{ fontSize:22, fontWeight:700, color:'var(--navy-900)', lineHeight:1.2 }}>จัดการระบบ</div>
+              <div style={{ fontSize:13, color:'var(--muted)', marginTop:4 }}>พนักงานและสาขาทั้งหมด</div>
             </div>
-          ))}
+            <button
+              onClick={() => setView('login')}
+              style={{ fontSize:12, color:'var(--muted)', background:'none', border:'1px solid var(--line)', borderRadius:8, padding:'6px 14px', cursor:'pointer', fontFamily:'inherit' }}
+            >
+              ออกจากระบบ
+            </button>
+          </div>
+
+          {/* KPI */}
+          <div className="kpi-grid" style={{ marginTop:20 }}>
+            {[
+              { lbl:'ทั้งหมด',     val: staffList.length,                                                                        cls:'' },
+              { lbl:'พร้อมใช้',    val: staffList.filter(s => s.status==='Active' && s.hasDescriptors).length,                    cls:'acc-green' },
+              { lbl:'รอดำเนินการ', val: staffList.filter(s => s.status!=='Inactive' && (!s.lineId || !s.hasDescriptors)).length,  cls:'acc-warn' },
+            ].map(k => (
+              <div key={k.lbl} className={`kpi ${k.cls}`}>
+                <div className="lbl">{k.lbl}</div>
+                <div className="num">{k.val}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Tab bar */}
-        <div style={{ display:'flex', gap:4, marginBottom:16, background:'var(--surface)', borderRadius:12, padding:4, border:'1px solid var(--line)' }}>
-          {([['staff','พนักงาน'],['add','+ เพิ่ม'],['branches','สาขา'],['add-branch','+ สาขา']] as [Tab,string][]).map(([t,label]) => (
-            <button key={t} onClick={() => setTab(t)} style={{
-              flex:1, padding:'8px 6px', borderRadius:8, border:'none', cursor:'pointer',
-              background: tab===t ? 'var(--navy-900)' : 'transparent',
-              color: tab===t ? '#fff' : 'var(--muted)',
-              fontWeight: tab===t ? 600 : 400,
+        <div style={{ display:'flex', gap:4, marginBottom:20, background:'var(--surface)', borderRadius:12, padding:4, border:'1px solid var(--line)' }}>
+          {TABS.map(({ key, label }) => (
+            <button key={key} onClick={() => setTab(key)} style={{
+              flex:1, padding:'9px 6px', borderRadius:8, border:'none', cursor:'pointer',
+              background: tab===key ? 'var(--navy-900)' : 'transparent',
+              color: tab===key ? '#fff' : 'var(--muted)',
+              fontWeight: tab===key ? 600 : 400,
               fontSize:12, fontFamily:'inherit', transition:'all .15s',
             }}>
               {label}
@@ -278,9 +293,8 @@ export default function ManagerPage() {
         {/* ─── Tab: เพิ่มพนักงาน ───────────────────────────────────────────── */}
         {tab === 'add' && (
           <div className="card" style={{ padding:'22px 20px' }}>
-            <div className="eyebrow" style={{ marginBottom:16 }}>เพิ่มพนักงานใหม่</div>
+            <div style={{ fontSize:15, fontWeight:700, color:'var(--navy-900)', marginBottom:18 }}>เพิ่มพนักงานใหม่</div>
 
-            {/* คำนำหน้า */}
             <div style={{ marginBottom:12 }}>
               <label style={lbl}>คำนำหน้า *</label>
               <select value={form.prefix} onChange={e => setForm(p => ({ ...p, prefix:e.target.value }))} style={inp}>
@@ -288,7 +302,6 @@ export default function ManagerPage() {
               </select>
             </div>
 
-            {/* ชื่อ + นามสกุล */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
               <div>
                 <label style={lbl}>ชื่อ *</label>
@@ -302,7 +315,6 @@ export default function ManagerPage() {
               </div>
             </div>
 
-            {/* Preview ชื่อเต็ม */}
             {(form.firstName || form.lastName) && (
               <div style={{ marginBottom:12, padding:'8px 12px', borderRadius:8, background:'var(--navy-50)', fontSize:13, color:'var(--ink-soft)' }}>
                 ชื่อเต็ม: <strong style={{ color:'var(--navy-900)' }}>
@@ -311,14 +323,12 @@ export default function ManagerPage() {
               </div>
             )}
 
-            {/* ชื่อเล่น */}
             <div style={{ marginBottom:12 }}>
               <label style={lbl}>ชื่อเล่น</label>
               <input type="text" placeholder="ชาย" value={form.nickname}
                 onChange={e => setForm(p => ({ ...p, nickname:e.target.value }))} style={inp} />
             </div>
 
-            {/* สาขา */}
             <div style={{ marginBottom:20 }}>
               <label style={lbl}>สาขา *</label>
               <select value={form.mainBranchId} onChange={e => setForm(p => ({ ...p, mainBranchId:e.target.value }))} style={inp}>
@@ -327,8 +337,8 @@ export default function ManagerPage() {
               </select>
             </div>
 
-            <div style={{ background:'var(--navy-50)', borderRadius:12, padding:14, marginBottom:16, fontSize:12, color:'var(--ink-soft)', lineHeight:1.8 }}>
-              📌 หลังเพิ่มแล้ว พนักงานต้อง:<br />
+            <div style={{ background:'var(--navy-50)', borderRadius:12, padding:14, marginBottom:16, fontSize:12, color:'var(--ink-soft)', lineHeight:1.9 }}>
+              หลังเพิ่มแล้ว พนักงานต้องทำ 3 ขั้นตอน<br />
               1. เปิดแอป Login LINE<br />
               2. เลือกชื่อตัวเองในหน้าผูกบัญชี<br />
               3. ลงทะเบียนใบหน้า 5 ท่า
@@ -376,9 +386,8 @@ export default function ManagerPage() {
         {/* ─── Tab: เพิ่มสาขา ──────────────────────────────────────────────── */}
         {tab === 'add-branch' && (
           <div className="card" style={{ padding:'22px 20px' }}>
-            <div className="eyebrow" style={{ marginBottom:16 }}>เพิ่มสาขาใหม่</div>
+            <div style={{ fontSize:15, fontWeight:700, color:'var(--navy-900)', marginBottom:18 }}>เพิ่มสาขาใหม่</div>
 
-            {/* รหัส + ชื่อ */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:10, marginBottom:12 }}>
               <div>
                 <label style={lbl}>รหัสสาขา *</label>
@@ -392,7 +401,6 @@ export default function ManagerPage() {
               </div>
             </div>
 
-            {/* จังหวัด (dropdown) */}
             <div style={{ marginBottom:12 }}>
               <label style={lbl}>จังหวัด *</label>
               <select value={branchForm.province} onChange={e => setBF(p => ({ ...p, province:e.target.value }))} style={inp}>
@@ -401,7 +409,6 @@ export default function ManagerPage() {
               </select>
             </div>
 
-            {/* จำนวนพนักงาน */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
               <div>
                 <label style={lbl}>พนักงานทั้งหมด</label>
@@ -415,7 +422,6 @@ export default function ManagerPage() {
               </div>
             </div>
 
-            {/* เวลาทำการ */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
               <div>
                 <label style={lbl}>เวลาเปิด</label>
@@ -429,7 +435,6 @@ export default function ManagerPage() {
               </div>
             </div>
 
-            {/* GPS */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:8 }}>
               <div>
                 <label style={lbl}>Latitude</label>
@@ -448,8 +453,8 @@ export default function ManagerPage() {
               </div>
             </div>
 
-            <div style={{ marginBottom:16, padding:'10px 14px', borderRadius:9, background:'var(--info-50)', fontSize:12, color:'var(--info)', lineHeight:1.8 }}>
-              📍 เปิด Google Maps → คลิกขวาตำแหน่งสาขา → คัดลอก lat, lng<br />
+            <div style={{ marginBottom:16, padding:'10px 14px', borderRadius:9, background:'var(--info-50)', fontSize:12, color:'var(--info)', lineHeight:1.9 }}>
+              เปิด Google Maps → คลิกขวาที่ตำแหน่งสาขา → คัดลอก lat, lng<br />
               รัศมีเริ่มต้น <strong>50 ม.</strong> — ปรับเพิ่มถ้าสาขาใหญ่
             </div>
 
@@ -463,8 +468,4 @@ export default function ManagerPage() {
       <ToastContainer toasts={toasts} />
     </>
   );
-}
-
-function hexRgb(hex: string) {
-  return `${parseInt(hex.slice(1,3),16)},${parseInt(hex.slice(3,5),16)},${parseInt(hex.slice(5,7),16)}`;
 }
