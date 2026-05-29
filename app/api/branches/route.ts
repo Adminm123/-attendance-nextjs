@@ -5,8 +5,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb }                   from '@/lib/firebase-admin';
 
-// ดึงรายการสาขาทั้งหมด
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+
+  if (id) {
+    const doc = await adminDb.collection('branches').doc(id).get();
+    const branch = doc.exists ? { id: doc.id, ...doc.data() } : null;
+    return NextResponse.json({ branches: branch ? [branch] : [], branch });
+  }
+
   const snap     = await adminDb.collection('branches').orderBy('id').get();
   const branches = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   return NextResponse.json({ branches });
