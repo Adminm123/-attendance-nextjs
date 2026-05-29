@@ -159,8 +159,25 @@ export default function HomeClient({ user }: Props) {
           </div>
         )}
 
+        {/* ─── ยังไม่ผูกบัญชี ─── */}
+        {pageState === 'home' && user && !user.isLinked && (
+          <div className="fade-up" style={{ paddingTop: 40, textAlign: 'center' }}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>🔗</div>
+            <div style={{ fontWeight: 700, fontSize: 20, color: 'var(--navy-900)', marginBottom: 8 }}>ยังไม่ได้ผูกบัญชี</div>
+            <div style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 32, lineHeight: 1.8 }}>
+              กรุณาเลือกชื่อของคุณเพื่อเชื่อมบัญชี LINE<br />ทำครั้งเดียวเท่านั้น
+            </div>
+            <a href="/link" className="btn btn-primary" style={{ display: 'block', padding: '14px', marginBottom: 12, textDecoration: 'none' }}>
+              ผูกบัญชีพนักงาน →
+            </a>
+            <button onClick={handleLogout} className="btn btn-ghost" style={{ width: '100%' }}>
+              ออกจากระบบ
+            </button>
+          </div>
+        )}
+
         {/* ─── Home ─── */}
-        {pageState === 'home' && user && (
+        {pageState === 'home' && user && user.isLinked && (
           <div className="fade-up">
             {/* Clock */}
             <div style={{ textAlign: 'center', paddingBottom: 20 }}>

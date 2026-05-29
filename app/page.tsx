@@ -2,7 +2,6 @@
 // นี่คือหน้าแรกที่พนักงานเห็นเมื่อเปิดแอป
 // Server Component: ดึง session ฝั่ง server แล้วส่งข้อมูลให้ Client Component
 
-import { redirect }    from 'next/navigation';
 import { getSession }  from '@/lib/session';
 import HomeClient      from './HomeClient';
 
@@ -19,11 +18,6 @@ export default async function HomePage() {
     return <HomeClient user={null} />;
   }
 
-  // ─── Login แล้วแต่ยังไม่ผูก LINE กับชื่อพนักงาน ──────────────────────────────
-  if (!session.isLinked) {
-    redirect('/link'); // ไปหน้าเลือกชื่อพนักงาน
-  }
-
-  // ─── Login และผูกแล้ว → แสดงหน้าเช็คอิน ─────────────────────────────────────
+  // ─── Login และผูกแล้ว (หรือยังไม่ผูก) → ส่งให้ HomeClient จัดการ UI ──────────
   return <HomeClient user={session} />;
 }
