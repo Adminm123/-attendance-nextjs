@@ -5,6 +5,7 @@
 
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import PwaRegister from '@/components/PwaRegister';
 
 // ─── Metadata = <title>, <meta> สำหรับ SEO และ PWA ─────────────────────────────
 export const metadata: Metadata = {
@@ -55,9 +56,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           defer
         />
       </head>
-      <body style={{
-        fontFamily: "'IBM Plex Sans Thai', 'IBM Plex Sans', system-ui, sans-serif",
-      }}>
+      <body style={{ fontFamily: "'IBM Plex Sans Thai', 'IBM Plex Sans', system-ui, sans-serif" }}>
+        <PwaRegister />
         {children}
       </body>
     </html>
