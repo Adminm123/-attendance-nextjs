@@ -1,6 +1,8 @@
 // ─── API: สร้าง LINE Login URL ────────────────────────────────────────────────
 // Frontend เรียก /api/auth/line-url → ได้ URL → redirect ไป LINE
 
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
 import { getLineLoginUrl } from '@/lib/line';
 
