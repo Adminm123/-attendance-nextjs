@@ -1,0 +1,9 @@
+# ไม่ commit ไฟล์เหล่านี้ขึ้น git
+node_modules/
+.next/
+.env.local          # ← สำคัญ! เก็บ API keys ห้าม commit เด็ดขาด
+.env*.local
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,123 @@
+/* ─── Global Styles ──────────────────────────────────────────────────────────── */
+/* import Tailwind CSS utilities ทั้งหมด */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS Variables (สีและค่าที่ใช้ร่วมกันทั้งแอป) ───────────────────────────── */
+:root {
+  --navy-950: #050d1f;
+  --navy-900: #0a1d3f;   /* สีหลัก header/appbar */
+  --navy-800: #102a52;
+  --navy-700: #1a3563;
+  --navy-600: #2a4a7a;
+  --navy-500: #4a6896;
+  --navy-100: #e6ecf5;
+  --navy-50:  #f1f4fa;
+
+  --red:      #cc0000;   /* สีแดง accent */
+  --red-700:  #a30000;
+  --red-50:   #fef2f2;
+
+  --bg:       #f4f5f8;   /* พื้นหลังหน้า */
+  --surface:  #ffffff;   /* พื้นหลัง card */
+  --line:     #e6e8ee;   /* เส้นขอบ */
+
+  --success:  #0f7a4a;   /* สีเขียว (เช็คอินสำเร็จ) */
+  --success-50: #e8f4ee;
+  --warn:     #b96b00;   /* สีส้ม (เตือน) */
+  --warn-50:  #fdf3e3;
+  --info:     #1d4d8c;
+
+  --ink:      #0a1d3f;   /* สีตัวอักษรหลัก */
+  --ink-soft: #3b4a66;
+  --muted:    #7a869a;   /* สีตัวอักษรรอง */
+}
+
+/* ─── Base Styles ────────────────────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent; /* ไม่มีไฮไลต์สีฟ้าตอนกดบนมือถือ */
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased; /* ฟอนต์เรียบขึ้นบน macOS/iOS */
+}
+
+/* ─── Reusable Components ───────────────────────────────────────────────────── */
+
+/* กรอบหน้า mobile (จำกัดความกว้างไว้ที่ 520px) */
+.shell {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 0 18px 96px;
+}
+
+/* ปุ่มหลัก */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  border-radius: 16px;
+  padding: 14px 20px;
+  transition: transform .15s, background .15s, box-shadow .15s;
+  font-family: inherit;
+}
+.btn:active { transform: scale(0.97); }
+
+.btn-primary {
+  background: var(--navy-900);
+  color: #fff;
+}
+.btn-success {
+  background: var(--success);
+  color: #fff;
+}
+.btn-danger {
+  background: var(--red);
+  color: #fff;
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+/* Card */
+.card {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  margin-bottom: 12px;
+}
+
+/* Loading Spinner */
+.spinner {
+  width: 28px; height: 28px;
+  border: 3px solid rgba(255,255,255,.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Chip/Badge */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.chip-ok   { background: var(--success-50); color: var(--success); }
+.chip-warn { background: var(--warn-50);    color: var(--warn); }
+.chip-bad  { background: var(--red-50);     color: var(--red-700); }
