@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import PwaRegister from '@/components/PwaRegister';
-import NavBar      from '@/components/NavBar';
+import PwaRegister    from '@/components/PwaRegister';
+import NavBar         from '@/components/NavBar';
+import InstallPrompt  from '@/components/InstallPrompt';
 
 export const metadata: Metadata = {
   title:       'Attendance',
@@ -26,12 +27,12 @@ export const viewport: Viewport = {
   width:        'device-width',
   initialScale: 1,
   maximumScale: 1,
-  themeColor:   '#0a1d3f',
+  themeColor:   '#ffffff',   // status bar สีขาวตอนโหลด
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="th">
+    <html lang="th" style={{ background: '#fff' }}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -44,11 +45,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           defer
         />
       </head>
-      <body style={{ fontFamily: "'IBM Plex Sans Thai', 'IBM Plex Sans', system-ui, sans-serif" }}>
+      <body style={{ fontFamily: "'IBM Plex Sans Thai', 'IBM Plex Sans', system-ui, sans-serif", background: '#fff' }}>
         <PwaRegister />
         <NavBar />
         <div className="dev-banner">DEVELOPED BY M. THATSANAPHONG</div>
         {children}
+        <InstallPrompt />
       </body>
     </html>
   );

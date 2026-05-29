@@ -39,15 +39,17 @@
 
 /* ─── Base ───────────────────────────────────────────────────────────────────── */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; padding: 0; }
+html, body { margin: 0; padding: 0; background: #fff; }
 body {
   font-family: 'IBM Plex Sans Thai', 'IBM Plex Sans', system-ui, sans-serif;
-  background: var(--bg);
+  background: #fff;
   color: var(--ink);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   line-height: 1.7;
 }
+/* หลัง NavBar + dev-banner โหลดเสร็จ ค่อยเปลี่ยนเป็น bg สีเทาอ่อน */
+.shell, .office-shell { background: var(--bg); min-height: calc(100vh - 80px); }
 
 /* ─── Shell ──────────────────────────────────────────────────────────────────── */
 .shell { max-width: 520px; margin: 0 auto; padding: 0 18px 96px; }

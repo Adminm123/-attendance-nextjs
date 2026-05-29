@@ -1,12 +1,13 @@
 {
   "name": "Attendance",
   "short_name": "Attendance",
-  "description": "ระบบเช็คชื่อพนักงานด้วยใบหน้า",
+  "description": "ระบบเช็คชื่อพนักงาน M Technologies",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0a1d3f",
+  "background_color": "#ffffff",
   "theme_color": "#0a1d3f",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
