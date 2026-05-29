@@ -9,11 +9,14 @@ import { getFirestore, type Firestore }  from 'firebase-admin/firestore';
 // Lazy init — รัน initialize เฉพาะตอน request จริง ไม่รันตอน build
 function init(): Firestore {
   if (!getApps().length) {
+    const raw = process.env.FIREBASE_ADMIN_PRIVATE_KEY ?? '';
+    // ลบ quote ครอบ (กรณีผู้ใช้ paste พร้อม ") แล้วแปลง \n literal → newline จริง
+    const privateKey = raw.replace(/^["']|["']$/g, '').replace(/\\n/g, '\n');
     initializeApp({
       credential: cert({
         projectId:   process.env.FIREBASE_ADMIN_PROJECT_ID!,
         clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL!,
-        privateKey:  process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        privateKey,
       }),
     });
   }
