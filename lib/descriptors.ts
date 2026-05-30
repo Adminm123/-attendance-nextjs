@@ -1,36 +1,32 @@
-// Firestore ไม่รองรับ nested array
-// → เก็บ descriptors ทั้งหมดเป็น number[] ตัวเดียว (flat) ขนาด N×128
-// → อ่านกลับมาโดยตัด slice ทีละ 128 ตัว
+// เก็บ descriptors เป็น JSON string เดียว เพื่อหลีกเลี่ยง Firestore nested-array restriction
 
-const DIM = 128; // face-api descriptor มี 128 มิติเสมอ
-
-export function serializeDescriptors(descs: number[][]): number[] {
-  return descs.flatMap(d => Array.from(d));
+export function serializeDescriptors(descs: number[][]): string {
+  return JSON.stringify(descs.map(d => Array.from(d)));
 }
 
 export function parseDescriptors(raw: any): number[][] {
-  if (!Array.isArray(raw) || raw.length === 0) return [];
+  try {
+    // format ใหม่: JSON string
+    if (typeof raw === 'string') return JSON.parse(raw) as number[][];
 
-  const first = raw[0];
+    if (!Array.isArray(raw) || raw.length === 0) return [];
 
-  // Format ใหม่: flat number[] → ตัด slice ทีละ DIM
-  if (typeof first === 'number') {
-    const result: number[][] = [];
-    for (let i = 0; i + DIM <= raw.length; i += DIM) {
-      result.push(raw.slice(i, i + DIM));
+    const first = raw[0];
+
+    // flat number[] (ความพยายามก่อนหน้า)
+    if (typeof first === 'number') {
+      const DIM = 128;
+      const out: number[][] = [];
+      for (let i = 0; i + DIM <= raw.length; i += DIM) out.push(raw.slice(i, i + DIM));
+      return out;
     }
-    return result;
-  }
 
-  // Format string[] (ความพยายามก่อนหน้า)
-  if (typeof first === 'string') {
-    return raw.map((d: string) => d.split(',').map(Number));
-  }
+    // string[] (ความพยายามก่อนหน้า)
+    if (typeof first === 'string') return raw.map((d: string) => d.split(',').map(Number));
 
-  // Format { v: number[] }[]
-  if (first?.v && Array.isArray(first.v)) {
-    return raw.map((d: any) => d.v as number[]);
-  }
+    // { v: number[] }[]
+    if (first?.v) return raw.map((d: any) => d.v as number[]);
 
-  return [];
+    return [];
+  } catch { return []; }
 }
