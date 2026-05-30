@@ -47,13 +47,13 @@ export default function HomeClient({ user }: Props) {
     async function loadData() {
       try {
         const [staffRes, attRes, branchRes] = await Promise.all([
-          fetch(`/api/staff?name=${encodeURIComponent(user!.staffName)}&withDescriptors=true`),
+          fetch('/api/staff/me'),
           fetch(`/api/attendance?name=${encodeURIComponent(user!.staffName)}&date=${new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' })}`),
           fetch(`/api/branches?id=${encodeURIComponent(user!.mainBranchId)}`),
         ]);
         const [staffData, attData, branchJson] = await Promise.all([staffRes.json(), attRes.json(), branchRes.json()]);
 
-        if (staffData.staff?.[0]?.descriptors) setDescs(staffData.staff[0].descriptors);
+        if (staffData.staff?.descriptors?.length) setDescs(staffData.staff.descriptors);
 
         const hasIn  = attData.records?.some((r: any) => r.type === 'IN')  ?? false;
         const hasOut = attData.records?.some((r: any) => r.type === 'OUT') ?? false;
