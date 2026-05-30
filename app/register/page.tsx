@@ -23,6 +23,7 @@ export default function RegisterPage() {
 
   const [step, setStep]           = useState<'intro' | 'capture' | 'saving' | 'done'>('intro');
   const [modelsReady, setModels]  = useState(false);
+  const [modelError, setModelErr] = useState('');
   const [currentPose, setPose]    = useState(0);
   const [captured, setCaptured]   = useState<boolean[]>([false,false,false,false,false]);
   const [tempDescs, setTempDescs] = useState<number[][]>([]);
@@ -48,9 +49,12 @@ export default function RegisterPage() {
       // โหลด face-api models
       try {
         let attempts = 0;
-        while (typeof faceapi === 'undefined' && attempts < 30) {
+        while (typeof faceapi === 'undefined' && attempts < 40) {
           await new Promise(r => setTimeout(r, 500));
           attempts++;
+        }
+        if (typeof faceapi === 'undefined') {
+          throw new Error('โหลดไลบรารีไม่สำเร็จ — ตรวจสอบการเชื่อมต่อแล้วรีโหลดหน้า');
         }
         await Promise.all([
           faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
@@ -58,8 +62,11 @@ export default function RegisterPage() {
           faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
         ]);
         setModels(true);
+        setModelErr('');
       } catch (e: any) {
-        toast('โหลด AI ล้มเหลว: ' + e.message, 'error');
+        const msg = e.message || 'โหลด AI ไม่สำเร็จ';
+        setModelErr(msg);
+        toast('โหลด AI ล้มเหลว: ' + msg, 'error');
       }
     }
     init();
@@ -203,14 +210,29 @@ export default function RegisterPage() {
               ))}
             </div>
 
-            <button
-              onClick={handleStart}
-              disabled={!modelsReady}
-              className="btn btn-primary"
-              style={{ width: '100%', padding: 16, fontSize: 15 }}
-            >
-              {modelsReady ? 'เริ่มลงทะเบียน' : 'กำลังโหลด AI...'}
-            </button>
+            {modelError ? (
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ background: 'var(--red-50)', border: '1px solid #fad6d6', borderRadius: 12, padding: '12px 16px', fontSize: 13, color: 'var(--red)', marginBottom: 10 }}>
+                  {modelError}
+                </div>
+                <button
+                  onClick={() => { setModelErr(''); window.location.reload(); }}
+                  className="btn btn-primary"
+                  style={{ width: '100%', padding: 16, fontSize: 15 }}
+                >
+                  รีโหลดหน้าเพื่อลองใหม่
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleStart}
+                disabled={!modelsReady}
+                className="btn btn-primary"
+                style={{ width: '100%', padding: 16, fontSize: 15 }}
+              >
+                {modelsReady ? 'เริ่มลงทะเบียน' : 'กำลังโหลด AI...'}
+              </button>
+            )}
           </div>
         )}
 

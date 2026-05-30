@@ -380,61 +380,103 @@ export default function OfficePage() {
   // ══════════════════════════════════════════════════════════════
   // MAIN
   // ══════════════════════════════════════════════════════════════
-  return (
-    <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 16px 80px' }}>
+  const KPI_STRIP = (
+    <div className="kpi-grid" style={{ flex: 1 }}>
+      {[
+        { lbl: 'พนักงาน',     num: totalStaff,   cls: '' },
+        { lbl: 'เข้างานแล้ว', num: totalPresent, cls: totalPresent >= totalStaff ? 'acc-green' : '' },
+        { lbl: 'ขาดงาน',      num: totalAbsent,  cls: totalAbsent  > 0 ? 'acc-red'  : 'acc-green' },
+        { lbl: 'สาขาครบ/ขาด', num: `${branchGreen}/${branchRed}`, cls: branchRed > 0 ? 'acc-warn' : 'acc-green' },
+        { lbl: 'ช่วยสาขาอื่น',num: totalCross,   cls: totalCross > 0 ? 'acc-warn' : '' },
+      ].map(k => (
+        <div key={k.lbl} className={`kpi ${k.cls}`}>
+          <div className="lbl">{k.lbl}</div>
+          <div className="num" key={String(k.num)}>{k.num}</div>
+        </div>
+      ))}
+    </div>
+  );
 
-      {/* ── Header ── */}
-      <div style={{ padding: '20px 0 16px', borderBottom: '1px solid var(--line)', marginBottom: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-          <div>
-            <div style={{ fontSize: 44, fontWeight: 700, color: 'var(--navy-900)', fontVariantNumeric: 'tabular-nums', lineHeight: 1, letterSpacing: '-1px' }}>
-              {clock || '--:--:--'}
+  return (
+    <div className="office-shell">
+
+      {/* ── Desktop Sidebar ── */}
+      <nav className="office-side">
+        {/* Clock + date */}
+        <div className="side-section">
+          <div className="side-eyebrow" style={{ marginBottom: 10 }}>M Technologies · Office</div>
+          <div style={{ fontSize: 38, fontWeight: 800, color: '#fff', fontVariantNumeric: 'tabular-nums', lineHeight: 1, letterSpacing: '-1.5px' }}>
+            {clock || '--:--:--'}
+          </div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', marginTop: 8 }}>
+            {new Date().toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' })}
+          </div>
+          {lastUpd && (
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,.35)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span className="live-dot" style={{ width: 5, height: 5, background: '#0f7a4a' }} />
+              อัพเดท {lastUpd}
             </div>
-            <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 6 }}>
+          )}
+        </div>
+
+        {/* Nav items */}
+        <div className="side-nav">
+          {TABS.map(t => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`side-nav-btn ${tab === t.key ? 'active' : ''}`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="side-foot">
+          <button
+            onClick={refreshAll}
+            style={{ width: '100%', background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 9, color: 'rgba(255,255,255,.65)', padding: '9px', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 600 }}
+          >
+            รีเฟรช
+          </button>
+        </div>
+      </nav>
+
+      {/* ── Main ── */}
+      <div className="office-main">
+        {/* Topbar: KPI strip */}
+        <div className="office-topbar">
+          {/* Mobile: clock (shown via CSS on small screens) */}
+          <div className="mob-clock-area">
+            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--navy-900)', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{clock}</div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3 }}>
               {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' })}
             </div>
-            {lastUpd && (
-              <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span className="live-dot" />อัพเดทล่าสุด {lastUpd}
-              </div>
-            )}
           </div>
+          {KPI_STRIP}
           <button onClick={refreshAll} style={{ padding: '8px 14px', borderRadius: 9, border: '1px solid var(--line)', background: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--muted)', fontFamily: 'inherit', flexShrink: 0 }}>
             รีเฟรช
           </button>
         </div>
 
-        {/* KPI Strip */}
-        <div className="kpi-grid" style={{ marginTop: 20 }}>
-          {[
-            { lbl: 'พนักงาน',     num: totalStaff,   cls: '' },
-            { lbl: 'เข้างานแล้ว', num: totalPresent, cls: totalPresent >= totalStaff ? 'acc-green' : '' },
-            { lbl: 'ขาดงาน',      num: totalAbsent,  cls: totalAbsent  > 0 ? 'acc-red'  : 'acc-green' },
-            { lbl: 'สาขาครบ/ขาด', num: `${branchGreen}/${branchRed}`, cls: branchRed > 0 ? 'acc-warn' : 'acc-green' },
-            { lbl: 'ช่วยสาขาอื่น',num: totalCross,   cls: totalCross > 0 ? 'acc-warn' : '' },
-          ].map(k => (
-            <div key={k.lbl} className={`kpi ${k.cls}`}>
-              <div className="lbl">{k.lbl}</div>
-              <div className="num" key={String(k.num)}>{k.num}</div>
-            </div>
+        {/* Mobile-only tab bar */}
+        <div className="off-mob-tabs">
+          {TABS.map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)} style={{
+              flexShrink: 0, padding: '9px 12px', borderRadius: 9, border: 'none', cursor: 'pointer',
+              background: tab === t.key ? 'var(--navy-900)' : 'transparent',
+              color:      tab === t.key ? '#fff' : 'var(--muted)',
+              fontWeight: tab === t.key ? 600 : 400,
+              fontSize: 12, fontFamily: 'inherit', transition: 'all .15s', whiteSpace: 'nowrap',
+            }}>
+              {t.label}
+            </button>
           ))}
         </div>
-      </div>
 
-      {/* ── Tab Bar ── */}
-      <div style={{ display: 'flex', gap: 2, marginBottom: 20, background: 'var(--surface)', borderRadius: 12, padding: 4, border: '1px solid var(--line)', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
-        {TABS.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)} style={{
-            flexShrink: 0, padding: '9px 12px', borderRadius: 9, border: 'none', cursor: 'pointer',
-            background: tab === t.key ? 'var(--navy-900)' : 'transparent',
-            color:      tab === t.key ? '#fff' : 'var(--muted)',
-            fontWeight: tab === t.key ? 600 : 400,
-            fontSize: 12, fontFamily: 'inherit', transition: 'all .15s', whiteSpace: 'nowrap',
-          }}>
-            {t.label}
-          </button>
-        ))}
-      </div>
+        {/* Content area */}
+        <div className="office-content">
 
       {/* ── DASHBOARD ── */}
       {tab === 'dashboard' && (
@@ -1059,6 +1101,8 @@ export default function OfficePage() {
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 }

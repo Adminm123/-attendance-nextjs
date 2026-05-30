@@ -111,7 +111,7 @@ export default function LinkPage() {
                     <div style={{ fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>ยังไม่มีรายชื่อรอผูกบัญชี</div>
                     <div style={{ color: 'var(--muted)', fontSize: 13, lineHeight: 1.8, marginBottom: 20 }}>
                       Admin ต้องเพิ่มชื่อพนักงานก่อน<br />
-                      ผ่านหน้า <strong>ออฟฟิศ → จัดการ → + เพิ่มพนักงาน</strong>
+                      ผ่านหน้า <strong>ออฟฟิศ → พนักงาน → + เพิ่มพนักงาน</strong>
                     </div>
                     <a href="/office" style={{
                       display: 'inline-block', padding: '10px 22px', borderRadius: 12,
