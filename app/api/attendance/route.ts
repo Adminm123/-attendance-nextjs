@@ -92,16 +92,24 @@ export async function POST(request: NextRequest) {
 
 // ─── GET: ดึงประวัติการเช็คอิน ────────────────────────────────────────────────
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const date = searchParams.get('date');
-  const name = searchParams.get('name');
+  try {
+    const { searchParams } = new URL(request.url);
+    const date = searchParams.get('date');
+    const name = searchParams.get('name');
 
-  let query = adminDb.collection('attendance') as FirebaseFirestore.Query;
-  if (date) query = query.where('date', '==', date);
-  if (name) query = query.where('name', '==', name);
-  query = query.orderBy('createdAt', 'desc').limit(200);
+    let query = adminDb.collection('attendance') as FirebaseFirestore.Query;
+    if (date) query = query.where('date', '==', date);
+    if (name) query = query.where('name', '==', name);
+    // ไม่ใช้ orderBy เพื่อหลีกเลี่ยง composite index — sort ใน memory แทน
 
-  const snap    = await query.get();
-  const records = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  return NextResponse.json({ records });
+    const snap    = await query.limit(200).get();
+    const records = snap.docs
+      .map(doc => ({ id: doc.id, ...doc.data() as any }))
+      .sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
+
+    return NextResponse.json({ records });
+  } catch (e: any) {
+    console.error('[GET /api/attendance]', e.message);
+    return NextResponse.json({ records: [], error: e.message }, { status: 500 });
+  }
 }

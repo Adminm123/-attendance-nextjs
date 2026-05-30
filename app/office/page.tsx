@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useToast, ToastContainer } from '@/components/Toast';
 import { PROVINCES, PREFIXES }      from '@/lib/provinces';
 
-type Tab = 'dashboard' | 'absent' | 'late' | 'logs' | 'summary' | 'manage';
+type Tab = 'dashboard' | 'absent' | 'late' | 'logs' | 'summary' | 'staff' | 'branches';
 
 interface StaffRow   { name: string; nickname: string; }
 interface PresentRow { name: string; nickname: string; time: string; isCross?: boolean; }
@@ -34,7 +34,8 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'late',      label: 'มาสาย'  },
   { key: 'logs',      label: 'บันทึก' },
   { key: 'summary',   label: 'สรุป'   },
-  { key: 'manage',    label: 'จัดการ' },
+  { key: 'staff',     label: 'พนักงาน'},
+  { key: 'branches',  label: 'สาขา'   },
 ];
 
 function parseGps(raw: string): { lat: number; lng: number } | null {
@@ -145,7 +146,7 @@ export default function OfficePage() {
 
   // ── Reports ───────────────────────────────────────────────────────────────────
   const fetchReport = async (t: Tab, date: string, force = false) => {
-    if (t === 'dashboard' || t === 'summary' || t === 'manage') return;
+    if (t === 'dashboard' || t === 'summary' || t === 'staff' || t === 'branches') return;
     const key = `${t}:${date}`;
     if (!force && loadedRef.current[t] === key) return;
     setRL(true);
@@ -312,25 +313,25 @@ export default function OfficePage() {
   }, [authed]);
 
   useEffect(() => {
-    if (!authed || tab === 'dashboard' || tab === 'summary' || tab === 'manage') return;
+    if (!authed || tab === 'dashboard' || tab === 'summary' || tab === 'staff' || tab === 'branches') return;
     const id = setInterval(() => fetchReport(tab, rDate, true), 30000);
     return () => clearInterval(id);
   }, [authed, tab, rDate]);
 
   useEffect(() => {
-    if (authed && tab !== 'dashboard' && tab !== 'summary' && tab !== 'manage') fetchReport(tab, rDate);
+    if (authed && tab !== 'dashboard' && tab !== 'summary' && tab !== 'staff' && tab !== 'branches') fetchReport(tab, rDate);
   }, [tab, rDate, authed]);
 
   useEffect(() => {
-    if (authed && tab === 'manage' && staffMg.length === 0 && branchesMg.length === 0) loadMgData();
+    if (authed && (tab === 'staff' || tab === 'branches')) loadMgData();
   }, [tab, authed]);
 
   const handleDateChange = (d: string) => { setRDate(d); loadedRef.current[tab] = undefined; };
   const refreshAll = () => {
     loadedRef.current = {};
     fetchDashboard();
-    if (tab !== 'dashboard' && tab !== 'summary' && tab !== 'manage') fetchReport(tab, rDate, true);
-    if (tab === 'manage') loadMgData();
+    if (tab !== 'dashboard' && tab !== 'summary' && tab !== 'staff' && tab !== 'branches') fetchReport(tab, rDate, true);
+    if (tab === 'staff' || tab === 'branches') loadMgData();
   };
 
   // Derived
@@ -653,11 +654,9 @@ export default function OfficePage() {
         </div>
       )}
 
-      {/* ══════════════ MANAGE ══════════════ */}
-      {tab === 'manage' && (
+      {/* ══════════════ STAFF ══════════════ */}
+      {tab === 'staff' && (
         <div className="tab-panel">
-
-          {/* ─── STAFF SECTION ─── */}
           <div style={{ marginBottom: 36 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -810,7 +809,12 @@ export default function OfficePage() {
             }
           </div>
 
-          {/* ─── BRANCH SECTION ─── */}
+        </div>
+      )}
+
+      {/* ══════════════ BRANCHES ══════════════ */}
+      {tab === 'branches' && (
+        <div className="tab-panel">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1015,7 +1019,6 @@ export default function OfficePage() {
 
         </div>
       )}
-      {/* ══════════════ END MANAGE ══════════════ */}
 
       <ToastContainer toasts={toasts} />
 
