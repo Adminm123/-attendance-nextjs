@@ -45,7 +45,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `ไม่พบพนักงาน (lineId: ${session.lineId})` }, { status: 404 });
     }
 
-    await snap.docs[0].ref.update({ descriptors: serializeDescriptors(descriptors) });
+    const flat = serializeDescriptors(descriptors);
+    console.log('[descriptors POST] storing flat array, length:', flat.length, 'from', descriptors.length, 'descriptors');
+    await snap.docs[0].ref.update({ descriptors: flat });
     return NextResponse.json({ success: true });
   } catch (e: any) {
     console.error('[POST /api/staff/descriptors]', e);
