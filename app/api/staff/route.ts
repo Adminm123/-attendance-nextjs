@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       status:         data.status,
       hasDescriptors: (data.descriptors?.length ?? 0) > 0,
       // ส่ง descriptors จริงเมื่อ withDescriptors=true (ใช้ตอนสแกนหน้า)
-      ...(withDescriptors ? { descriptors: data.descriptors || [] } : {}),
+      ...(withDescriptors ? { descriptors: (data.descriptors || []).map((d: any) => d.v ?? d) } : {}),
       createdAt:      data.createdAt,
     };
   });

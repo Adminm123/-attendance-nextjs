@@ -16,8 +16,9 @@ export async function GET(request: NextRequest) {
   if (snap.empty) return NextResponse.json({ error: 'ไม่พบพนักงาน' }, { status: 404 });
 
   const data = snap.docs[0].data();
-  // ส่งเฉพาะ descriptors (ไม่ส่ง lineId หรือข้อมูลส่วนตัวอื่น)
-  return NextResponse.json({ descriptors: data.descriptors || [] });
+  // Firestore เก็บในรูป { v: number[] }[] เพราะไม่รองรับ nested array
+  const descriptors = (data.descriptors || []).map((d: any) => d.v ?? d);
+  return NextResponse.json({ descriptors });
 }
 
 // บันทึก descriptors หลังลงทะเบียนหน้า
@@ -44,7 +45,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `ไม่พบพนักงาน (lineId: ${session.lineId})` }, { status: 404 });
     }
 
-    await snap.docs[0].ref.update({ descriptors });
+    // Firestore ไม่รองรับ nested array → แปลง number[][] เป็น { v: number[] }[]
+    const toStore = descriptors.map((d: number[]) => ({ v: Array.from(d) }));
+    await snap.docs[0].ref.update({ descriptors: toStore });
     return NextResponse.json({ success: true });
   } catch (e: any) {
     console.error('[POST /api/staff/descriptors]', e);

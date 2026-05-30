@@ -32,7 +32,7 @@ export async function GET() {
       lineId:         data.lineId,
       mainBranchId:   data.mainBranchId,
       status:         data.status,
-      descriptors:    data.descriptors || [],
+      descriptors:    (data.descriptors || []).map((d: any) => d.v ?? d),
       hasDescriptors: (data.descriptors?.length ?? 0) > 0,
     },
   });
