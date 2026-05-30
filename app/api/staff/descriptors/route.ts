@@ -22,23 +22,32 @@ export async function GET(request: NextRequest) {
 
 // บันทึก descriptors หลังลงทะเบียนหน้า
 export async function POST(request: NextRequest) {
-  const session = await getSession();
-  if (!session?.isLinked) {
-    return NextResponse.json({ error: 'กรุณาเข้าสู่ระบบก่อน' }, { status: 401 });
+  try {
+    const session = await getSession();
+    if (!session?.isLinked) {
+      return NextResponse.json({ error: 'กรุณาผูก LINE ก่อน (session ไม่มี isLinked)' }, { status: 401 });
+    }
+    if (!session.staffName) {
+      return NextResponse.json({ error: 'ไม่พบชื่อพนักงานใน session' }, { status: 401 });
+    }
+
+    const { descriptors } = await request.json();
+    if (!Array.isArray(descriptors) || descriptors.length === 0) {
+      return NextResponse.json({ error: 'ไม่มีข้อมูลใบหน้า' }, { status: 400 });
+    }
+
+    const snap = await adminDb.collection('staff')
+      .where('name', '==', session.staffName)
+      .limit(1)
+      .get();
+    if (snap.empty) {
+      return NextResponse.json({ error: `ไม่พบพนักงาน: "${session.staffName}"` }, { status: 404 });
+    }
+
+    await snap.docs[0].ref.update({ descriptors });
+    return NextResponse.json({ success: true });
+  } catch (e: any) {
+    console.error('[POST /api/staff/descriptors]', e);
+    return NextResponse.json({ error: e.message || 'เกิดข้อผิดพลาดภายใน' }, { status: 500 });
   }
-
-  const { descriptors } = await request.json();
-  if (!descriptors?.length) {
-    return NextResponse.json({ error: 'ไม่มีข้อมูลใบหน้า' }, { status: 400 });
-  }
-
-  // บันทึก descriptors ลง Firestore (เฉพาะพนักงานของตัวเอง)
-  const snap = await adminDb.collection('staff')
-    .where('name', '==', session.staffName)
-    .limit(1)
-    .get();
-  if (snap.empty) return NextResponse.json({ error: 'ไม่พบข้อมูลพนักงาน' }, { status: 404 });
-
-  await snap.docs[0].ref.update({ descriptors });
-  return NextResponse.json({ success: true });
 }
