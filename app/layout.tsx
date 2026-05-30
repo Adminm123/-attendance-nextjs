@@ -46,12 +46,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body style={{ fontFamily: "'IBM Plex Sans Thai', 'IBM Plex Sans', system-ui, sans-serif", background: '#fff' }}>
-        {/* iOS PWA splash overlay — fades out once page hydrates */}
-        <div id="ios-splash" style={{ position:'fixed', inset:0, background:'#fff', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16, pointerEvents:'none' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icon-192.png" alt="" width={96} height={96} style={{ borderRadius:22 }} />
-        </div>
-        <script dangerouslySetInnerHTML={{ __html: `(function(){var s=document.getElementById('ios-splash');if(s){s.style.transition='opacity .35s';setTimeout(function(){s.style.opacity='0';setTimeout(function(){s.remove()},400)},600)}})()` }} />
         <PwaRegister />
         <NavBar />
         <div className="dev-banner">DEVELOPED BY M. THATSANAPHONG</div>
