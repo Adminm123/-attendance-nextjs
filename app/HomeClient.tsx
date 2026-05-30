@@ -219,35 +219,72 @@ export default function HomeClient({ user }: Props) {
               )}
             </div>
 
-            {/* Scan tile */}
-            {!isCheckInDone && (
+            {/* กำลังโหลดข้อมูล */}
+            {todayStatus === null && (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}>
+                <div className="spinner" />
+              </div>
+            )}
+
+            {/* ถ้ายังไม่ลงทะเบียนใบหน้า → แสดงปุ่มไปหน้าลงทะเบียน */}
+            {todayStatus && !staffDescriptors.length && (
+              <div className="card fade-up" style={{ textAlign: 'center', padding: 28, background: 'var(--warn-50)', borderColor: '#f3dfb3' }}>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>📷</div>
+                <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--navy-900)', marginBottom: 8 }}>ยังไม่ลงทะเบียนใบหน้า</div>
+                <div style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 20, lineHeight: 1.7 }}>
+                  ต้องลงทะเบียนใบหน้าก่อน<br />จึงจะสามารถเช็คอิน/เช็คเอาท์ได้
+                </div>
+                <a href="/register" className="btn btn-primary" style={{ display: 'block', padding: '14px', textDecoration: 'none' }}>
+                  ลงทะเบียนใบหน้า →
+                </a>
+              </div>
+            )}
+
+            {/* Scan tile — Biometric Scanner */}
+            {!isCheckInDone && staffDescriptors.length > 0 && (
               <button
                 ref={rippleRef}
                 className="scan-tile"
                 disabled={!canScan}
                 onClick={e => { addRipple(e); setPageState('scanning'); }}
               >
-                <div className="glow" />
-                <div className="grain" />
-                <div className="ring" />
-                <div className="ring2" />
-                <div className="lens" />
-                <div style={{ position: 'relative', zIndex: 1 }}>
-                  <div style={{ fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,.5)', marginBottom: 12, fontWeight: 600 }}>
-                    {!staffDescriptors.length ? 'กำลังโหลด...' : todayStatus?.hasIn ? 'เช็คเอาท์' : 'เช็คอิน'}
+                {/* Background: dot grid + sweep beam */}
+                <div className="st-grid" />
+                <div className="st-beam" />
+
+                {/* Text body */}
+                <div className="st-body">
+                  <div className="st-label">{todayStatus?.hasIn ? 'เช็คเอาท์' : 'เช็คอิน'}</div>
+                  <div className="st-title">
+                    สแกนหน้า <span className="gold-text">{todayStatus?.hasIn ? 'เช็คเอาท์' : 'เช็คอิน'}</span>
                   </div>
-                  <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.3, marginBottom: 8 }}>
-                    {!staffDescriptors.length ? (
-                      <span>กำลังโหลดข้อมูล...</span>
-                    ) : todayStatus?.hasIn ? (
-                      <span>สแกนหน้า <span className="gold-text">เช็คเอาท์</span></span>
-                    ) : (
-                      <span>สแกนหน้า <span className="gold-text">เช็คอิน</span></span>
-                    )}
-                  </div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,.5)' }}>
-                    กดเพื่อเปิดกล้อง → ยืนยันใบหน้า
-                  </div>
+                  <div className="st-sub">กดเพื่อเปิดกล้อง · ยืนยันใบหน้า</div>
+                </div>
+
+                {/* Scanner circle */}
+                <div className="st-scanner">
+                  <div className="st-arc1" />
+                  <div className="st-arc2" />
+                  <div className="st-radar" />
+                  <div className="st-hline" />
+                  <div className="st-vline" />
+                  <div className="st-tick n" />
+                  <div className="st-tick s" />
+                  <div className="st-tick e" />
+                  <div className="st-tick w" />
+                  <div className="st-dot" />
+                </div>
+
+                {/* Corner viewfinder brackets */}
+                <div className="st-vf">
+                  <span className="vf-tl" /><span className="vf-tr" />
+                  <span className="vf-bl" /><span className="vf-br" />
+                </div>
+
+                {/* Status LEDs */}
+                <div className="st-status">
+                  <span className="st-led red" />
+                  <span className="st-led green" />
                 </div>
               </button>
             )}

@@ -10,8 +10,9 @@ import { getSession }                from '@/lib/session';
 // ─── GET: ดึงรายชื่อพนักงาน ──────────────────────────────────────────────────
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const status = searchParams.get('status'); // 'Pending' | 'Active' | 'Inactive'
-  const name   = searchParams.get('name');   // ค้นหาชื่อเฉพาะ
+  const status         = searchParams.get('status');          // 'Pending' | 'Active' | 'Inactive'
+  const name           = searchParams.get('name');            // ค้นหาชื่อเฉพาะ
+  const withDescriptors = searchParams.get('withDescriptors') === 'true'; // ส่ง descriptors กลับมาด้วย
 
   let query = adminDb.collection('staff') as FirebaseFirestore.Query;
   if (status) query = query.where('status', '==', status);
@@ -22,15 +23,16 @@ export async function GET(request: NextRequest) {
   const staff = snap.docs.map(doc => {
     const data = doc.data();
     return {
-      id:          doc.id,
-      name:        data.name,
-      nickname:    data.nickname,
-      lineId:      data.lineId,
-      mainBranchId:data.mainBranchId,
-      status:      data.status,
-      // ไม่ส่ง descriptors (ข้อมูลใหญ่มาก ใช้เฉพาะตอนสแกนหน้า)
+      id:             doc.id,
+      name:           data.name,
+      nickname:       data.nickname,
+      lineId:         data.lineId,
+      mainBranchId:   data.mainBranchId,
+      status:         data.status,
       hasDescriptors: (data.descriptors?.length ?? 0) > 0,
-      createdAt:   data.createdAt,
+      // ส่ง descriptors จริงเมื่อ withDescriptors=true (ใช้ตอนสแกนหน้า)
+      ...(withDescriptors ? { descriptors: data.descriptors || [] } : {}),
+      createdAt:      data.createdAt,
     };
   });
 

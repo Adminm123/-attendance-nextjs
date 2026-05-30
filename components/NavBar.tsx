@@ -3,9 +3,8 @@
 import { usePathname } from 'next/navigation';
 
 const LINKS = [
-  { href: '/',        label: 'เช็คชื่อ' },
-  { href: '/office',  label: 'ออฟฟิศ'  },
-  { href: '/manager', label: 'จัดการ'  },
+  { href: '/',       label: 'เช็คชื่อ' },
+  { href: '/office', label: 'ออฟฟิศ'  },
 ];
 
 export default function NavBar() {

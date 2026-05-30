@@ -7,3 +7,17 @@ node_modules/
 # OS files
 .DS_Store
 Thumbs.db
+
+.vercel
+.env*
+
+# Credentials & secrets — ห้าม commit เด็ดขาด
+sa_value.txt
+*.json.key
+service-account*.json
+
+# Build artifacts
+tsconfig.tsbuildinfo
+
+# Debug / temp
+response.json
