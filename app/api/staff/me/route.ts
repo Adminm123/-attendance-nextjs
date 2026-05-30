@@ -2,9 +2,10 @@
 // GET /api/staff/me → ส่งคืน { staff } สำหรับ user ที่ login อยู่
 // ใช้ lineId แทน name เพื่อหลีกเลี่ยงปัญหา encoding
 
-import { NextResponse }  from 'next/server';
-import { adminDb }       from '@/lib/firebase-admin';
-import { getSession }    from '@/lib/session';
+import { NextResponse }          from 'next/server';
+import { adminDb }              from '@/lib/firebase-admin';
+import { getSession }           from '@/lib/session';
+import { parseDescriptors }     from '@/lib/descriptors';
 
 export async function GET() {
   const session = await getSession();
@@ -32,7 +33,7 @@ export async function GET() {
       lineId:         data.lineId,
       mainBranchId:   data.mainBranchId,
       status:         data.status,
-      descriptors:    (data.descriptors || []).map((d: any) => d.v ?? d),
+      descriptors:    parseDescriptors(data.descriptors || []),
       hasDescriptors: (data.descriptors?.length ?? 0) > 0,
     },
   });

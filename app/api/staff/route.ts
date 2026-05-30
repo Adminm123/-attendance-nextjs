@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb }                   from '@/lib/firebase-admin';
 import { getSession }                from '@/lib/session';
+import { parseDescriptors }          from '@/lib/descriptors';
 
 // ─── GET: ดึงรายชื่อพนักงาน ──────────────────────────────────────────────────
 export async function GET(request: NextRequest) {
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
       status:         data.status,
       hasDescriptors: (data.descriptors?.length ?? 0) > 0,
       // ส่ง descriptors จริงเมื่อ withDescriptors=true (ใช้ตอนสแกนหน้า)
-      ...(withDescriptors ? { descriptors: (data.descriptors || []).map((d: any) => d.v ?? d) } : {}),
+      ...(withDescriptors ? { descriptors: parseDescriptors(data.descriptors || []) } : {}),
       createdAt:      data.createdAt,
     };
   });
