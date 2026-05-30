@@ -37,11 +37,11 @@ export async function POST(request: NextRequest) {
     }
 
     const snap = await adminDb.collection('staff')
-      .where('name', '==', session.staffName)
+      .where('lineId', '==', session.lineId)
       .limit(1)
       .get();
     if (snap.empty) {
-      return NextResponse.json({ error: `ไม่พบพนักงาน: "${session.staffName}"` }, { status: 404 });
+      return NextResponse.json({ error: `ไม่พบพนักงาน (lineId: ${session.lineId})` }, { status: 404 });
     }
 
     await snap.docs[0].ref.update({ descriptors });

@@ -34,7 +34,6 @@ export async function GET(request: NextRequest) {
     const staffSnap = await adminDb
       .collection('staff')
       .where('lineId', '==', lineId)
-      .where('status', '==', 'Active')
       .limit(1)
       .get();
 
