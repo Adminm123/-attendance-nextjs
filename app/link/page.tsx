@@ -2,35 +2,31 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter }            from 'next/navigation';
-import FaceScanner              from '@/components/FaceScanner';
 import { useToast, ToastContainer } from '@/components/Toast';
 
-type Step = 'select' | 'loading' | 'scan' | 'done';
+type Step = 'select' | 'confirm' | 'done';
 
 interface StaffItem {
   id:           string;
   name:         string;
   nickname:     string;
   mainBranchId: string;
-  hasDescriptors: boolean;
-  lineId?:      string;
   status:       string;
-  descriptors?: number[][];
+  lineId?:      string;
 }
 
 export default function LinkPage() {
   const router            = useRouter();
   const { toasts, toast } = useToast();
 
-  const [step, setStep]           = useState<Step>('select');
-  const [staffList, setStaff]     = useState<StaffItem[]>([]);
-  const [selected, setSelected]   = useState<StaffItem | null>(null);
-  const [search, setSearch]       = useState('');
-  const [loading, setLoading]     = useState(true);
-  const [linking, setLinking]     = useState(false);
+  const [step, setStep]         = useState<Step>('select');
+  const [staffList, setStaff]   = useState<StaffItem[]>([]);
+  const [selected, setSelected] = useState<StaffItem | null>(null);
+  const [search, setSearch]     = useState('');
+  const [loading, setLoading]   = useState(true);
+  const [linking, setLinking]   = useState(false);
 
   useEffect(() => {
-    // Fetch all staff, filter client-side (avoids Firestore composite-index requirement)
     fetch('/api/staff')
       .then(r => r.json())
       .then(d => {
@@ -45,29 +41,7 @@ export default function LinkPage() {
     s.name.includes(search) || (s.nickname || '').includes(search)
   );
 
-  const handleSelectStaff = async (staff: StaffItem) => {
-    if (!staff.hasDescriptors) {
-      toast('ยังไม่มีข้อมูลใบหน้า ติดต่อ Admin', 'warn');
-      return;
-    }
-    setStep('loading');
-    try {
-      const res  = await fetch(`/api/staff/descriptors?name=${encodeURIComponent(staff.name)}`);
-      const data = await res.json();
-      if (data.descriptors?.length) {
-        setSelected({ ...staff, descriptors: data.descriptors });
-        setStep('scan');
-      } else {
-        toast('ยังไม่มีข้อมูลใบหน้า ติดต่อ Admin', 'warn');
-        setStep('select');
-      }
-    } catch {
-      toast('เกิดข้อผิดพลาด', 'error');
-      setStep('select');
-    }
-  };
-
-  const handleFaceSuccess = async () => {
+  const handleConfirm = async () => {
     if (!selected || linking) return;
     setLinking(true);
     try {
@@ -78,7 +52,7 @@ export default function LinkPage() {
       const data = await res.json();
       if (data.success) {
         setStep('done');
-        setTimeout(() => router.push('/'), 2000);
+        setTimeout(() => router.push('/register'), 1800);
       } else {
         toast(data.error || 'ผูกบัญชีไม่สำเร็จ', 'error');
         setStep('select');
@@ -111,9 +85,9 @@ export default function LinkPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               style={{
-                width: '100%', padding: '12px 16px', borderRadius: '12px',
-                border: '1px solid var(--line)', fontSize: '14px',
-                marginBottom: '12px', outline: 'none', fontFamily: 'inherit',
+                width: '100%', padding: '12px 16px', borderRadius: 12,
+                border: '1px solid var(--line)', fontSize: 14,
+                marginBottom: 12, outline: 'none', fontFamily: 'inherit',
               }}
             />
 
@@ -136,7 +110,8 @@ export default function LinkPage() {
                     <div style={{ fontSize: 36, marginBottom: 12 }}>👤</div>
                     <div style={{ fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>ยังไม่มีรายชื่อรอผูกบัญชี</div>
                     <div style={{ color: 'var(--muted)', fontSize: 13, lineHeight: 1.8, marginBottom: 20 }}>
-                      Admin ต้องเพิ่มชื่อพนักงานก่อน<br />ผ่านหน้า <strong>ออฟฟิศ → จัดการ → + เพิ่ม</strong>
+                      Admin ต้องเพิ่มชื่อพนักงานก่อน<br />
+                      ผ่านหน้า <strong>ออฟฟิศ → จัดการ → + เพิ่มพนักงาน</strong>
                     </div>
                     <a href="/office" style={{
                       display: 'inline-block', padding: '10px 22px', borderRadius: 12,
@@ -149,14 +124,14 @@ export default function LinkPage() {
                 )}
               </div>
             ) : (
-              <div className="cascade" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div className="cascade" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {filtered.map(staff => (
                   <button
                     key={staff.id}
-                    onClick={() => handleSelectStaff(staff)}
+                    onClick={() => { setSelected(staff); setStep('confirm'); }}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: '14px',
-                      padding: '14px 16px', borderRadius: '14px',
+                      display: 'flex', alignItems: 'center', gap: 14,
+                      padding: '14px 16px', borderRadius: 14,
                       background: 'var(--surface)', border: '1px solid var(--line)',
                       cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
                       transition: 'transform .15s, box-shadow .15s',
@@ -170,15 +145,12 @@ export default function LinkPage() {
                       {staff.name.charAt(0)}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 600, fontSize: '14px' }}>{staff.name}</div>
-                      <div style={{ color: 'var(--muted)', fontSize: '12px' }}>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>{staff.name}</div>
+                      <div style={{ color: 'var(--muted)', fontSize: 12 }}>
                         {staff.nickname ? `(${staff.nickname}) · ` : ''}สาขา {staff.mainBranchId}
                       </div>
                     </div>
-                    {!staff.hasDescriptors
-                      ? <span className="chip chip-warn" style={{ fontSize: 9, flexShrink: 0 }}>รอลงหน้า</span>
-                      : <span style={{ color: 'var(--muted)', fontSize: '18px' }}>›</span>
-                    }
+                    <span style={{ color: 'var(--muted)', fontSize: 18 }}>›</span>
                   </button>
                 ))}
               </div>
@@ -186,43 +158,75 @@ export default function LinkPage() {
           </div>
         )}
 
-        {/* ─── กำลังโหลดข้อมูลใบหน้า ─── */}
-        {step === 'loading' && (
-          <div style={{ textAlign: 'center', paddingTop: 80 }}>
-            <div className="spinner" style={{ margin: '0 auto 16px' }} />
-            <div style={{ color: 'var(--muted)', fontSize: 14 }}>กำลังโหลดข้อมูลใบหน้า...</div>
-          </div>
-        )}
-
-        {/* ─── สแกนหน้า ─── */}
-        {step === 'scan' && selected && (
-          <>
-            <div style={{ textAlign: 'center', marginBottom: 20 }}>
-              <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 4 }}>ยืนยันตัวตน</div>
-              <div style={{ fontSize: 15, color: 'var(--navy-900)', fontWeight: 600 }}>{selected.name}</div>
-              {selected.nickname && <div style={{ color: 'var(--muted)', fontSize: 13 }}>({selected.nickname})</div>}
+        {/* ─── ยืนยันชื่อ ─── */}
+        {step === 'confirm' && selected && (
+          <div className="spring-pop" style={{ paddingTop: 10 }}>
+            <div style={{ textAlign: 'center', marginBottom: 28 }}>
+              <div style={{ fontWeight: 700, fontSize: 20, marginBottom: 6 }}>ยืนยันชื่อของคุณ</div>
+              <div style={{ color: 'var(--muted)', fontSize: 13 }}>
+                กรุณาตรวจสอบให้ถูกต้องก่อนยืนยัน
+              </div>
             </div>
 
-            <FaceScanner
-              staffDescriptors={selected.descriptors!}
-              staffName={selected.name}
-              onSuccess={handleFaceSuccess}
-              onError={msg => { toast(msg, 'error'); setStep('select'); }}
-            />
+            <div style={{
+              background: 'var(--navy-900)', borderRadius: 20,
+              padding: '36px 24px', textAlign: 'center', marginBottom: 20,
+              boxShadow: '0 8px 32px rgba(17,26,52,.25)',
+            }}>
+              <div style={{
+                width: 88, height: 88, borderRadius: '50%',
+                background: 'rgba(255,255,255,.12)',
+                border: '2px solid rgba(255,255,255,.2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 20px',
+                fontSize: 36, fontWeight: 700, color: '#fff',
+              }}>
+                {selected.name.charAt(0)}
+              </div>
+              <div style={{ fontSize: 30, fontWeight: 700, color: '#fff', lineHeight: 1.3 }}>
+                {selected.name}
+              </div>
+              {selected.nickname && (
+                <div style={{ color: 'rgba(255,255,255,.55)', fontSize: 17, marginTop: 6 }}>
+                  ({selected.nickname})
+                </div>
+              )}
+              <div style={{
+                display: 'inline-block', marginTop: 14,
+                background: 'rgba(255,255,255,.08)',
+                borderRadius: 8, padding: '4px 12px',
+                color: 'rgba(255,255,255,.45)', fontSize: 12,
+              }}>
+                สาขา {selected.mainBranchId}
+              </div>
+            </div>
 
-            <button onClick={() => { setSelected(null); setStep('select'); }}
-              className="btn btn-ghost" style={{ width: '100%', marginTop: 12 }}>
+            <button
+              onClick={handleConfirm}
+              disabled={linking}
+              className="btn btn-primary"
+              style={{ width: '100%', padding: 18, fontSize: 16, marginBottom: 10 }}
+            >
+              {linking ? 'กำลังเชื่อมต่อ...' : `ใช่ ฉันคือ ${selected.name}`}
+            </button>
+            <button
+              onClick={() => { setSelected(null); setStep('select'); setSearch(''); }}
+              className="btn btn-ghost"
+              style={{ width: '100%' }}
+            >
               ← เลือกชื่ออื่น
             </button>
-          </>
+          </div>
         )}
 
         {/* ─── สำเร็จ ─── */}
         {step === 'done' && (
           <div style={{ textAlign: 'center', paddingTop: 60 }} className="spring-pop">
             <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
-            <div style={{ fontWeight: 700, fontSize: 22, color: 'var(--navy-900)' }}>ผูกบัญชีสำเร็จ</div>
-            <div style={{ color: 'var(--muted)', marginTop: 8, fontSize: 13 }}>กำลังพาไปหน้าเช็คชื่อ...</div>
+            <div style={{ fontWeight: 700, fontSize: 22, color: 'var(--navy-900)' }}>ผูกบัญชีสำเร็จ!</div>
+            <div style={{ color: 'var(--muted)', marginTop: 8, fontSize: 13 }}>
+              กำลังพาไปลงทะเบียนใบหน้า...
+            </div>
           </div>
         )}
 

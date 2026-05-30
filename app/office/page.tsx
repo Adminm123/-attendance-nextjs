@@ -4,8 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useToast, ToastContainer } from '@/components/Toast';
 import { PROVINCES, PREFIXES }      from '@/lib/provinces';
 
-type Tab   = 'dashboard' | 'absent' | 'late' | 'logs' | 'summary' | 'manage';
-type MgTab = 'staff' | 'add-staff' | 'branches' | 'add-branch';
+type Tab = 'dashboard' | 'absent' | 'late' | 'logs' | 'summary' | 'manage';
 
 interface StaffRow   { name: string; nickname: string; }
 interface PresentRow { name: string; nickname: string; time: string; isCross?: boolean; }
@@ -23,11 +22,11 @@ const monthStart = () => { const d = new Date(); d.setDate(1); return d.toLocale
 const SC = { green: 'var(--success)', yellow: 'var(--warn)', red: 'var(--red)' } as const;
 const SL = { green: 'ครบ', yellow: 'ขั้นต่ำ', red: 'ขาด' } as const;
 
-const inp: React.CSSProperties = { width: '100%', padding: '11px 14px', borderRadius: 10, border: '1px solid var(--line)', fontSize: 14, outline: 'none', fontFamily: 'inherit', color: 'var(--ink)', background: '#fff' };
-const lbl: React.CSSProperties = { fontSize: 11, color: 'var(--muted)', marginBottom: 5, display: 'block', letterSpacing: '.06em', textTransform: 'uppercase', fontWeight: 500 };
+const inp: React.CSSProperties = { width: '100%', padding: '10px 13px', borderRadius: 10, border: '1px solid var(--line)', fontSize: 13, outline: 'none', fontFamily: 'inherit', color: 'var(--ink)', background: '#fff' };
+const lbl: React.CSSProperties = { fontSize: 11, color: 'var(--muted)', marginBottom: 4, display: 'block', letterSpacing: '.06em', textTransform: 'uppercase', fontWeight: 500 };
 
-const GOLD = '#C5962A';
-const MG_UNLOCK = 'office123';
+const GOLD       = '#C5962A';
+const MG_UNLOCK  = 'office123';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'dashboard', label: 'ภาพรวม' },
@@ -37,10 +36,6 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'summary',   label: 'สรุป'   },
   { key: 'manage',    label: 'จัดการ' },
 ];
-
-const MG_TABS_LOCKED:   MgTab[] = ['staff', 'branches'];
-const MG_TABS_UNLOCKED: MgTab[] = ['staff', 'add-staff', 'branches', 'add-branch'];
-const MG_LABEL: Record<MgTab, string> = { 'staff': 'พนักงาน', 'add-staff': '+ เพิ่ม', 'branches': 'สาขา', 'add-branch': '+ สาขา' };
 
 function parseGps(raw: string): { lat: number; lng: number } | null {
   const parts = raw.split(',').map(s => s.trim());
@@ -54,12 +49,12 @@ function parseGps(raw: string): { lat: number; lng: number } | null {
 export default function OfficePage() {
   const { toasts, toast } = useToast();
 
-  // ── Auth ─────────────────────────────────────────────────────────────────────
+  // ── Auth ──────────────────────────────────────────────────────────────────────
   const [authed,  setAuthed] = useState(false);
   const [pwd,     setPwd]    = useState('');
   const [logging, setLog]    = useState(false);
 
-  // ── View ─────────────────────────────────────────────────────────────────────
+  // ── View ──────────────────────────────────────────────────────────────────────
   const [tab,     setTab]    = useState<Tab>('dashboard');
   const [clock,   setClock]  = useState('');
   const [lastUpd, setLastUpd]= useState('');
@@ -68,10 +63,10 @@ export default function OfficePage() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  // ── Reports ──────────────────────────────────────────────────────────────────
-  const [rDate, setRDate] = useState(todayStr);
-  const [from,  setFrom]  = useState(monthStart);
-  const [to,    setTo]    = useState(todayStr);
+  // ── Reports ───────────────────────────────────────────────────────────────────
+  const [rDate,      setRDate]  = useState(todayStr);
+  const [from,       setFrom]   = useState(monthStart);
+  const [to,         setTo]     = useState(todayStr);
   const [absentList, setAbsent] = useState<any[]>([]);
   const [lateList,   setLate]   = useState<any[]>([]);
   const [logsList,   setLogs]   = useState<any[]>([]);
@@ -79,24 +74,38 @@ export default function OfficePage() {
   const [rLoading,   setRL]     = useState(false);
   const loadedRef      = useRef<Partial<Record<Tab, string>>>({});
   const prevPresentRef = useRef<Set<string>>(new Set());
-  const [newRowKeys, setNewRowKeys] = useState<Set<string>>(new Set());
+  const [newRowKeys,  setNewRowKeys]  = useState<Set<string>>(new Set());
 
-  // ── Manage tab ───────────────────────────────────────────────────────────────
-  const [mgUnlocked, setMgUnlocked] = useState(false);
-  const [mgPwdInput, setMgPwdInput] = useState('');
-  const [mgTab,      setMgTab]      = useState<MgTab>('staff');
+  // ── Manage: data ──────────────────────────────────────────────────────────────
   const [staffMg,    setStaffMg]    = useState<MgStaff[]>([]);
   const [branchesMg, setBranchesMg] = useState<MgBranch[]>([]);
   const [mgSearch,   setMgSearch]   = useState('');
   const [mgLoading,  setMgLoad]     = useState(false);
-  const [staffForm, setStaffForm] = useState({ prefix: 'นาย', firstName: '', lastName: '', nickname: '', mainBranchId: '' });
-  const [addingStaff, setAddingStaff] = useState(false);
+
+  // ── Manage: add forms ─────────────────────────────────────────────────────────
+  const [showAddStaff,  setShowAddStaff]  = useState(false);
+  const [showAddBranch, setShowAddBranch] = useState(false);
+  const [staffForm,  setStaffForm]  = useState({ prefix: 'นาย', firstName: '', lastName: '', nickname: '', mainBranchId: '' });
   const [branchForm, setBranchForm] = useState({ id: '', name: '', province: '', totalStaff: '', minStaff: '', gps: '', radius: '50', openTime: '09:00', closeTime: '18:00' });
+  const [addingStaff,  setAddingStaff]  = useState(false);
   const [addingBranch, setAddingBranch] = useState(false);
+
+  // ── Manage: inline edit ───────────────────────────────────────────────────────
+  const [editStaffId,   setEditStaffId]   = useState<string | null>(null);
+  const [editBranchId,  setEditBranchId]  = useState<string | null>(null);
+  const [staffEditBuf,  setStaffEditBuf]  = useState({ nickname: '', mainBranchId: '', status: '' });
+  const [branchEditBuf, setBranchEditBuf] = useState({ name: '', province: '', gps: '', radius: '', openTime: '', closeTime: '', totalStaff: '', minStaff: '' });
+
+  // ── Password modal ────────────────────────────────────────────────────────────
+  const [pwdModal, setPwdModal] = useState<(() => Promise<void>) | null>(null);
+  const [pwdVal,   setPwdVal]   = useState('');
+  const [pwdBusy,  setPwdBusy]  = useState(false);
 
   // ── Clock ─────────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const tick = () => setClock(new Date().toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    const tick = () => setClock(new Date().toLocaleTimeString('th-TH', {
+      timeZone: 'Asia/Bangkok', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit',
+    }));
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
@@ -166,7 +175,7 @@ export default function OfficePage() {
     finally { setRL(false); }
   };
 
-  // ── Manage: load data ─────────────────────────────────────────────────────────
+  // ── Manage: load ──────────────────────────────────────────────────────────────
   const loadMgData = async () => {
     setMgLoad(true);
     try {
@@ -178,47 +187,92 @@ export default function OfficePage() {
     finally { setMgLoad(false); }
   };
 
-  // ── Manage: staff actions ─────────────────────────────────────────────────────
-  const handleMgAddStaff = async () => {
+  // ── Password modal ────────────────────────────────────────────────────────────
+  const requirePwd = (fn: () => Promise<void>) => {
+    setPwdVal('');
+    setPwdModal(() => fn);
+  };
+
+  const doPwdConfirm = async () => {
+    if (pwdVal !== MG_UNLOCK) { toast('รหัสไม่ถูกต้อง', 'error'); return; }
+    setPwdBusy(true);
+    try {
+      await pwdModal!();
+      setPwdModal(null);
+      setPwdVal('');
+    } catch {
+      toast('เกิดข้อผิดพลาด', 'error');
+    } finally {
+      setPwdBusy(false);
+    }
+  };
+
+  // ── Manage: save staff (edit) ─────────────────────────────────────────────────
+  const handleSaveStaff = (s: MgStaff) => requirePwd(async () => {
+    const res = await fetch('/api/staff', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: s.name, updates: {
+        nickname: staffEditBuf.nickname,
+        mainBranchId: staffEditBuf.mainBranchId,
+        status: staffEditBuf.status,
+      }}),
+    });
+    const data = await res.json();
+    if (data.success) { toast('บันทึกสำเร็จ', 'success'); setEditStaffId(null); loadMgData(); }
+    else toast(data.error || 'บันทึกไม่สำเร็จ', 'error');
+  });
+
+  // ── Manage: save branch (edit) ────────────────────────────────────────────────
+  const handleSaveBranch = (b: MgBranch) => requirePwd(async () => {
+    const rawGps = branchEditBuf.gps.trim();
+    const gpsVal = rawGps ? parseGps(rawGps) : null;
+    if (rawGps && !gpsVal) { toast('รูปแบบ GPS ไม่ถูกต้อง', 'warn'); return; }
+    const res = await fetch('/api/branches', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: b.id,
+        name: branchEditBuf.name,
+        province: branchEditBuf.province,
+        totalStaff: Number(branchEditBuf.totalStaff) || 0,
+        minStaff: Number(branchEditBuf.minStaff) || 0,
+        lat: gpsVal ? gpsVal.lat : b.lat,
+        lng: gpsVal ? gpsVal.lng : b.lng,
+        radius: Number(branchEditBuf.radius) || 50,
+        openTime: branchEditBuf.openTime,
+        closeTime: branchEditBuf.closeTime,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) { toast('บันทึกสำเร็จ', 'success'); setEditBranchId(null); loadMgData(); }
+    else toast(data.error || 'บันทึกไม่สำเร็จ', 'error');
+  });
+
+  // ── Manage: add staff ─────────────────────────────────────────────────────────
+  const handleAddStaffSubmit = () => {
     if (!staffForm.firstName.trim() || !staffForm.lastName.trim() || !staffForm.mainBranchId) {
       toast('กรุณากรอกชื่อ นามสกุล และเลือกสาขา', 'warn'); return;
     }
     const name = `${staffForm.prefix}${staffForm.firstName} ${staffForm.lastName}`.trim();
-    setAddingStaff(true);
-    try {
-      const res  = await fetch('/api/staff', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, nickname: staffForm.nickname.trim(), mainBranchId: staffForm.mainBranchId }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        toast(`เพิ่ม "${name}" สำเร็จ`, 'success');
-        setStaffForm({ prefix: 'นาย', firstName: '', lastName: '', nickname: '', mainBranchId: '' });
-        setMgTab('staff'); loadMgData();
-      } else toast(data.error || 'เพิ่มไม่สำเร็จ', 'error');
-    } finally { setAddingStaff(false); }
+    requirePwd(async () => {
+      setAddingStaff(true);
+      try {
+        const res  = await fetch('/api/staff', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, nickname: staffForm.nickname.trim(), mainBranchId: staffForm.mainBranchId }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          toast(`เพิ่ม "${name}" สำเร็จ`, 'success');
+          setStaffForm({ prefix: 'นาย', firstName: '', lastName: '', nickname: '', mainBranchId: '' });
+          setShowAddStaff(false);
+          loadMgData();
+        } else toast(data.error || 'เพิ่มไม่สำเร็จ', 'error');
+      } finally { setAddingStaff(false); }
+    });
   };
 
-  const handleMgTransfer = async (name: string, newBranchId: string) => {
-    try {
-      const res  = await fetch('/api/staff', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, updates: { mainBranchId: newBranchId } }) });
-      const data = await res.json();
-      if (data.success) { toast('ย้ายสาขาสำเร็จ', 'success'); loadMgData(); }
-      else toast(data.error || 'ย้ายไม่สำเร็จ', 'error');
-    } catch { toast('เกิดข้อผิดพลาด', 'error'); }
-  };
-
-  const handleMgStatus = async (name: string, status: string) => {
-    if (!window.confirm(`${status === 'Inactive' ? 'ยืนยันลาออก' : 'กลับมาทำงาน'} "${name}" ?`)) return;
-    try {
-      const res  = await fetch('/api/staff', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, updates: { status } }) });
-      const data = await res.json();
-      if (data.success) { toast('อัพเดทสำเร็จ', 'success'); loadMgData(); }
-    } catch { toast('เกิดข้อผิดพลาด', 'error'); }
-  };
-
-  // ── Manage: branch actions ────────────────────────────────────────────────────
-  const handleMgAddBranch = async () => {
+  // ── Manage: add branch ────────────────────────────────────────────────────────
+  const handleAddBranchSubmit = () => {
     if (!branchForm.id || !branchForm.name || !branchForm.province) {
       toast('กรุณากรอกรหัส ชื่อ และเลือกจังหวัด', 'warn'); return;
     }
@@ -226,24 +280,27 @@ export default function OfficePage() {
     if (branchForm.gps.trim() && !gpsVal) {
       toast('รูปแบบ GPS ไม่ถูกต้อง เช่น 15.1141, 104.3235', 'warn'); return;
     }
-    setAddingBranch(true);
-    try {
-      const res  = await fetch('/api/branches', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: branchForm.id.toUpperCase(), name: branchForm.name, province: branchForm.province,
-          totalStaff: Number(branchForm.totalStaff) || 0, minStaff: Number(branchForm.minStaff) || 0,
-          lat: gpsVal!.lat, lng: gpsVal!.lng, radius: Number(branchForm.radius) || 50,
-          openTime: branchForm.openTime, closeTime: branchForm.closeTime,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        toast('เพิ่มสาขาสำเร็จ', 'success');
-        setBranchForm({ id: '', name: '', province: '', totalStaff: '', minStaff: '', gps: '', radius: '50', openTime: '09:00', closeTime: '18:00' });
-        setMgTab('branches'); loadMgData();
-      } else toast(data.error || 'เพิ่มไม่สำเร็จ', 'error');
-    } finally { setAddingBranch(false); }
+    requirePwd(async () => {
+      setAddingBranch(true);
+      try {
+        const res  = await fetch('/api/branches', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: branchForm.id.toUpperCase(), name: branchForm.name, province: branchForm.province,
+            totalStaff: Number(branchForm.totalStaff) || 0, minStaff: Number(branchForm.minStaff) || 0,
+            lat: gpsVal!.lat, lng: gpsVal!.lng, radius: Number(branchForm.radius) || 50,
+            openTime: branchForm.openTime, closeTime: branchForm.closeTime,
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          toast('เพิ่มสาขาสำเร็จ', 'success');
+          setBranchForm({ id: '', name: '', province: '', totalStaff: '', minStaff: '', gps: '', radius: '50', openTime: '09:00', closeTime: '18:00' });
+          setShowAddBranch(false);
+          loadMgData();
+        } else toast(data.error || 'เพิ่มไม่สำเร็จ', 'error');
+      } finally { setAddingBranch(false); }
+    });
   };
 
   // ── Effects ───────────────────────────────────────────────────────────────────
@@ -284,13 +341,8 @@ export default function OfficePage() {
   const branchGreen  = branches.filter(b => b.colorStatus === 'green').length;
   const branchRed    = branches.filter(b => b.colorStatus === 'red').length;
 
-  const mgFiltered = staffMg.filter(s => s.name.includes(mgSearch) || (s.nickname || '').includes(mgSearch) || s.mainBranchId.includes(mgSearch));
+  const mgFiltered   = staffMg.filter(s => s.name.includes(mgSearch) || (s.nickname || '').includes(mgSearch) || s.mainBranchId.includes(mgSearch));
   const mgBranchName = (id: string) => branchesMg.find(b => b.id === id)?.name || id;
-
-  const tryMgUnlock = () => {
-    if (mgPwdInput === MG_UNLOCK) { setMgUnlocked(true); setMgPwdInput(''); toast('ปลดล็อกแล้ว', 'success'); }
-    else toast('รหัสไม่ถูกต้อง', 'error');
-  };
 
   const statusChip = (s: MgStaff) => {
     if (s.status === 'Inactive') return <span className="chip chip-bad">ลาออก</span>;
@@ -330,7 +382,7 @@ export default function OfficePage() {
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 16px 80px' }}>
 
-      {/* ── Header: clock + date ── */}
+      {/* ── Header ── */}
       <div style={{ padding: '20px 0 16px', borderBottom: '1px solid var(--line)', marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div>
@@ -368,7 +420,7 @@ export default function OfficePage() {
         </div>
       </div>
 
-      {/* ── Tab Bar (scrollable for 6 tabs) ── */}
+      {/* ── Tab Bar ── */}
       <div style={{ display: 'flex', gap: 2, marginBottom: 20, background: 'var(--surface)', borderRadius: 12, padding: 4, border: '1px solid var(--line)', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} style={{
@@ -552,7 +604,7 @@ export default function OfficePage() {
           </div>
 
           {rLoading ? <Spinner /> : !summary
-            ? <div style={{ color: 'var(--muted)', fontSize: 13, padding: 20, textAlign: 'center' }}>เลือกช่วงเวลาแล้วกด "ดูสรุป"</div>
+            ? <div style={{ color: 'var(--muted)', fontSize: 13, padding: 20, textAlign: 'center' }}>เลือกช่วงเวลาแล้วกด &quot;ดูสรุป&quot;</div>
             : <>
                 <div style={{ marginBottom: 12, display: 'flex', gap: 8, flexWrap: 'wrap', fontSize: 12, color: 'var(--muted)' }}>
                   <span style={{ color: 'var(--success)', fontWeight: 700 }}>✓ มา</span>
@@ -601,285 +653,414 @@ export default function OfficePage() {
         </div>
       )}
 
-      {/* ══════════════ MANAGE TAB ══════════════ */}
+      {/* ══════════════ MANAGE ══════════════ */}
       {tab === 'manage' && (
         <div className="tab-panel">
 
-          {/* Lock/unlock banner */}
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '10px 14px', borderRadius: 12, background: 'var(--bg)', border: '1px solid var(--line)', marginBottom: 16 }}>
-            {!mgUnlocked ? (
-              <>
-                <div style={{ fontSize: 12, color: 'var(--muted)', flex: 1 }}>ใส่รหัสเพื่อแก้ไขข้อมูล</div>
-                <input
-                  type="password" placeholder="••••••" value={mgPwdInput}
-                  onChange={e => setMgPwdInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && tryMgUnlock()}
-                  style={{ width: 110, padding: '7px 10px', borderRadius: 9, border: '1px solid var(--line)', fontSize: 13, outline: 'none', fontFamily: 'inherit', letterSpacing: '.1em' }}
-                />
-                <button onClick={tryMgUnlock} className="btn btn-soft" style={{ padding: '7px 14px', fontSize: 12 }}>ปลดล็อก</button>
-              </>
-            ) : (
-              <>
-                <span className="live-dot" style={{ background: 'var(--success)' }} />
-                <div style={{ fontSize: 12, color: 'var(--success)', fontWeight: 700, flex: 1 }}>โหมดแก้ไข — แก้ไขได้</div>
-                <button onClick={() => setMgUnlocked(false)} style={{ fontSize: 11, color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>ล็อก</button>
-              </>
+          {/* ─── STAFF SECTION ─── */}
+          <div style={{ marginBottom: 36 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ fontWeight: 700, fontSize: 16 }}>พนักงาน</div>
+                <span className="chip chip-ok">{staffMg.filter(s => s.status !== 'Inactive').length} คน</span>
+              </div>
+              <button
+                onClick={() => { setShowAddStaff(v => !v); setShowAddBranch(false); }}
+                className="btn btn-soft"
+                style={{ padding: '7px 14px', fontSize: 12 }}
+              >
+                {showAddStaff ? 'ซ่อน ✕' : '+ เพิ่มพนักงาน'}
+              </button>
+            </div>
+
+            {/* Add staff form */}
+            {showAddStaff && (
+              <div className="card spring-pop" style={{ padding: '20px 18px', marginBottom: 12, border: '1.5px solid var(--navy-900)' }}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--navy-900)', marginBottom: 14 }}>เพิ่มพนักงานใหม่</div>
+
+                <div style={{ marginBottom: 10 }}>
+                  <label style={lbl}>คำนำหน้า *</label>
+                  <select value={staffForm.prefix} onChange={e => setStaffForm(p => ({ ...p, prefix: e.target.value }))} style={inp}>
+                    {PREFIXES.map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                  <div>
+                    <label style={lbl}>ชื่อ *</label>
+                    <input type="text" placeholder="สมชาย" value={staffForm.firstName}
+                      onChange={e => setStaffForm(p => ({ ...p, firstName: e.target.value }))} style={inp} />
+                  </div>
+                  <div>
+                    <label style={lbl}>นามสกุล *</label>
+                    <input type="text" placeholder="ใจดี" value={staffForm.lastName}
+                      onChange={e => setStaffForm(p => ({ ...p, lastName: e.target.value }))} style={inp} />
+                  </div>
+                </div>
+
+                {(staffForm.firstName || staffForm.lastName) && (
+                  <div style={{ marginBottom: 10, padding: '7px 12px', borderRadius: 8, background: 'var(--navy-50)', fontSize: 13 }}>
+                    ชื่อเต็ม: <strong style={{ color: 'var(--navy-900)' }}>{staffForm.prefix}{staffForm.firstName} {staffForm.lastName}</strong>
+                  </div>
+                )}
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+                  <div>
+                    <label style={lbl}>ชื่อเล่น</label>
+                    <input type="text" placeholder="ชาย" value={staffForm.nickname}
+                      onChange={e => setStaffForm(p => ({ ...p, nickname: e.target.value }))} style={inp} />
+                  </div>
+                  <div>
+                    <label style={lbl}>สาขา *</label>
+                    <select value={staffForm.mainBranchId} onChange={e => setStaffForm(p => ({ ...p, mainBranchId: e.target.value }))} style={inp}>
+                      <option value="">เลือกสาขา</option>
+                      {branchesMg.map(b => <option key={b.id} value={b.id}>{b.name} [{b.id}]</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <button onClick={handleAddStaffSubmit} disabled={addingStaff} className="btn btn-primary" style={{ width: '100%', padding: 14 }}>
+                  {addingStaff ? 'กำลังเพิ่ม...' : 'เพิ่มพนักงาน — กดบันทึก ใส่รหัส'}
+                </button>
+              </div>
             )}
-          </div>
 
-          {/* Manage sub-tabs */}
-          <div style={{ display: 'flex', gap: 3, marginBottom: 16, background: 'var(--surface)', borderRadius: 10, padding: 3, border: '1px solid var(--line)' }}>
-            {(mgUnlocked ? MG_TABS_UNLOCKED : MG_TABS_LOCKED).map(t => (
-              <button key={t} onClick={() => setMgTab(t)} style={{
-                flex: 1, padding: '8px 6px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                background: mgTab === t ? 'var(--navy-900)' : 'transparent',
-                color:      mgTab === t ? '#fff' : 'var(--muted)',
-                fontWeight: mgTab === t ? 600 : 400,
-                fontSize: 12, fontFamily: 'inherit', transition: 'all .15s',
-              }}>{MG_LABEL[t]}</button>
-            ))}
-          </div>
+            {/* Search */}
+            <input type="text" placeholder="ค้นหาชื่อ, ชื่อเล่น, สาขา..."
+              value={mgSearch} onChange={e => setMgSearch(e.target.value)}
+              style={{ ...inp, marginBottom: 10 }}
+            />
 
-          {/* ── Staff list ── */}
-          {mgTab === 'staff' && (
-            <>
-              <input
-                type="text" placeholder="ค้นหาชื่อ, ชื่อเล่น, สาขา..."
-                value={mgSearch} onChange={e => setMgSearch(e.target.value)}
-                style={{ ...inp, marginBottom: 12, fontSize: 13 }}
-              />
-              {mgLoading
-                ? <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 76, borderRadius: 16 }} />)}</div>
-                : <div className="cascade" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {mgFiltered.map(s => (
-                      <div key={s.id} className="card" style={{ padding: '16px 18px' }}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: mgUnlocked && s.status !== 'Inactive' ? 12 : 0 }}>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 600, fontSize: 15, lineHeight: 1.5 }}>
-                              {s.nickname && <span style={{ color: GOLD, fontWeight: 700, fontSize: 13 }}>({s.nickname}) </span>}
-                              {s.name}
-                            </div>
-                            <div className="eyebrow" style={{ marginTop: 3 }}>สาขา {mgBranchName(s.mainBranchId)} · {s.mainBranchId}</div>
-                          </div>
-                          {statusChip(s)}
+            {/* Staff list */}
+            {mgLoading
+              ? <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 68, borderRadius: 14 }} />)}
+                </div>
+              : <div className="cascade" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {mgFiltered.map(s => (
+                    <div key={s.id} className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                      <button
+                        onClick={() => {
+                          if (editStaffId === s.id) { setEditStaffId(null); return; }
+                          setEditStaffId(s.id);
+                          setBranchEditBuf(prev => prev); // keep branch buf
+                          setStaffEditBuf({ nickname: s.nickname || '', mainBranchId: s.mainBranchId, status: s.status });
+                        }}
+                        style={{ width: '100%', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                      >
+                        <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--navy-900)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, flexShrink: 0, fontSize: 14 }}>
+                          {s.name.charAt(0)}
                         </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 600, fontSize: 14 }}>
+                            {s.nickname && <span style={{ color: GOLD, fontSize: 12 }}>({s.nickname}) </span>}
+                            {s.name}
+                          </div>
+                          <div className="eyebrow" style={{ marginTop: 2 }}>{mgBranchName(s.mainBranchId)} · {s.mainBranchId}</div>
+                        </div>
+                        {statusChip(s)}
+                        <span style={{ color: 'var(--muted)', fontSize: 13, marginLeft: 4 }}>
+                          {editStaffId === s.id ? '▲' : '✏️'}
+                        </span>
+                      </button>
 
-                        {mgUnlocked && s.status !== 'Inactive' && (
+                      {editStaffId === s.id && (
+                        <div style={{ borderTop: '1px solid var(--line)', padding: '14px 16px', background: 'var(--bg)' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 12 }}>
+                            <div>
+                              <label style={lbl}>ชื่อเล่น</label>
+                              <input type="text" value={staffEditBuf.nickname}
+                                onChange={e => setStaffEditBuf(p => ({ ...p, nickname: e.target.value }))} style={inp} />
+                            </div>
+                            <div>
+                              <label style={lbl}>สาขา</label>
+                              <select value={staffEditBuf.mainBranchId}
+                                onChange={e => setStaffEditBuf(p => ({ ...p, mainBranchId: e.target.value }))} style={inp}>
+                                {branchesMg.map(b => <option key={b.id} value={b.id}>{b.id}</option>)}
+                              </select>
+                            </div>
+                            <div>
+                              <label style={lbl}>สถานะ</label>
+                              <select value={staffEditBuf.status}
+                                onChange={e => setStaffEditBuf(p => ({ ...p, status: e.target.value }))} style={inp}>
+                                <option value="Pending">Pending</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">ลาออก</option>
+                              </select>
+                            </div>
+                          </div>
                           <div style={{ display: 'flex', gap: 8 }}>
-                            <select defaultValue="" onChange={e => { if (e.target.value) handleMgTransfer(s.name, e.target.value); }}
-                              style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: '1px solid var(--line)', fontSize: 12, color: 'var(--info)', background: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
-                              <option value="" disabled>ย้ายสาขา...</option>
-                              {branchesMg.filter(b => b.id !== s.mainBranchId).map(b => (
-                                <option key={b.id} value={b.id}>{b.name} [{b.id}]</option>
-                              ))}
-                            </select>
-                            <button onClick={() => handleMgStatus(s.name, 'Inactive')}
-                              style={{ padding: '7px 12px', borderRadius: 8, border: '1px solid var(--red-50)', background: 'var(--red-50)', color: 'var(--red)', fontSize: 12, cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
-                              ลาออก
+                            <button onClick={() => handleSaveStaff(s)} className="btn btn-primary" style={{ flex: 1, padding: '10px', fontSize: 13 }}>
+                              บันทึก
+                            </button>
+                            <button onClick={() => setEditStaffId(null)} className="btn btn-ghost" style={{ padding: '10px 14px', fontSize: 13 }}>
+                              ยกเลิก
                             </button>
                           </div>
-                        )}
-                        {mgUnlocked && s.status === 'Inactive' && (
-                          <button onClick={() => handleMgStatus(s.name, 'Pending')}
-                            style={{ marginTop: 8, width: '100%', padding: '7px', borderRadius: 8, border: '1px solid var(--line)', background: 'none', color: 'var(--muted)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>
-                            กลับมาทำงาน
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                    {mgFiltered.length === 0 && (
-                      <div style={{ textAlign: 'center', padding: 48, color: 'var(--muted)', fontSize: 14 }}>
-                        {mgSearch ? 'ไม่พบพนักงาน' : 'ยังไม่มีพนักงาน — ปลดล็อกแล้วกด "+ เพิ่ม"'}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {mgFiltered.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--muted)', fontSize: 14 }}>
+                      {mgSearch ? 'ไม่พบพนักงาน' : 'ยังไม่มีพนักงาน — กด "+ เพิ่มพนักงาน" ด้านบน'}
+                    </div>
+                  )}
+                </div>
+            }
+          </div>
+
+          {/* ─── BRANCH SECTION ─── */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ fontWeight: 700, fontSize: 16 }}>สาขา</div>
+                <span className="chip chip-ok">{branchesMg.length} สาขา</span>
+              </div>
+              <button
+                onClick={() => { setShowAddBranch(v => !v); setShowAddStaff(false); }}
+                className="btn btn-soft"
+                style={{ padding: '7px 14px', fontSize: 12 }}
+              >
+                {showAddBranch ? 'ซ่อน ✕' : '+ เพิ่มสาขา'}
+              </button>
+            </div>
+
+            {/* Add branch form */}
+            {showAddBranch && (
+              <div className="card spring-pop" style={{ padding: '20px 18px', marginBottom: 12, border: '1.5px solid var(--navy-900)' }}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--navy-900)', marginBottom: 14 }}>เพิ่มสาขาใหม่</div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 10, marginBottom: 10 }}>
+                  <div>
+                    <label style={lbl}>รหัสสาขา *</label>
+                    <input type="text" placeholder="B01" value={branchForm.id}
+                      onChange={e => setBranchForm(p => ({ ...p, id: e.target.value }))} style={inp} />
+                  </div>
+                  <div>
+                    <label style={lbl}>ชื่อสาขา *</label>
+                    <input type="text" placeholder="เซ็นทรัล เชียงใหม่" value={branchForm.name}
+                      onChange={e => setBranchForm(p => ({ ...p, name: e.target.value }))} style={inp} />
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: 10 }}>
+                  <label style={lbl}>จังหวัด *</label>
+                  <select value={branchForm.province} onChange={e => setBranchForm(p => ({ ...p, province: e.target.value }))} style={inp}>
+                    <option value="">เลือกจังหวัด</option>
+                    {PROVINCES.map(pv => <option key={pv} value={pv}>{pv}</option>)}
+                  </select>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
+                  <div>
+                    <label style={lbl}>พนักงานทั้งหมด</label>
+                    <input type="number" placeholder="10" value={branchForm.totalStaff}
+                      onChange={e => setBranchForm(p => ({ ...p, totalStaff: e.target.value }))} style={inp} />
+                  </div>
+                  <div>
+                    <label style={lbl}>ขั้นต่ำ</label>
+                    <input type="number" placeholder="5" value={branchForm.minStaff}
+                      onChange={e => setBranchForm(p => ({ ...p, minStaff: e.target.value }))} style={inp} />
+                  </div>
+                  <div>
+                    <label style={lbl}>เปิด</label>
+                    <input type="time" value={branchForm.openTime}
+                      onChange={e => setBranchForm(p => ({ ...p, openTime: e.target.value }))} style={inp} />
+                  </div>
+                  <div>
+                    <label style={lbl}>ปิด</label>
+                    <input type="time" value={branchForm.closeTime}
+                      onChange={e => setBranchForm(p => ({ ...p, closeTime: e.target.value }))} style={inp} />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 10, alignItems: 'end', marginBottom: 16 }}>
+                  <div>
+                    <label style={lbl}>GPS (lat, lng)</label>
+                    <input type="text" placeholder="15.114112, 104.323573" value={branchForm.gps}
+                      onChange={e => setBranchForm(p => ({ ...p, gps: e.target.value }))} style={inp} />
+                    {branchForm.gps && (
+                      <div style={{ fontSize: 11, marginTop: 4, color: parseGps(branchForm.gps) ? 'var(--success)' : 'var(--red)' }}>
+                        {parseGps(branchForm.gps) ? `✓ ${parseGps(branchForm.gps)!.lat.toFixed(5)}, ${parseGps(branchForm.gps)!.lng.toFixed(5)}` : 'รูปแบบไม่ถูกต้อง'}
                       </div>
                     )}
                   </div>
-              }
-            </>
-          )}
-
-          {/* ── Add staff ── */}
-          {mgTab === 'add-staff' && mgUnlocked && (
-            <div className="card spring-pop" style={{ padding: '22px 20px' }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy-900)', marginBottom: 18 }}>เพิ่มพนักงานใหม่</div>
-
-              <div style={{ marginBottom: 12 }}>
-                <label style={lbl}>คำนำหน้า *</label>
-                <select value={staffForm.prefix} onChange={e => setStaffForm(p => ({ ...p, prefix: e.target.value }))} style={inp}>
-                  {PREFIXES.map(p => <option key={p} value={p}>{p}</option>)}
-                </select>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-                <div>
-                  <label style={lbl}>ชื่อ *</label>
-                  <input type="text" placeholder="สมชาย" value={staffForm.firstName}
-                    onChange={e => setStaffForm(p => ({ ...p, firstName: e.target.value }))} style={inp} />
+                  <div style={{ width: 80 }}>
+                    <label style={lbl}>รัศมี (ม.)</label>
+                    <input type="number" placeholder="50" value={branchForm.radius}
+                      onChange={e => setBranchForm(p => ({ ...p, radius: e.target.value }))} style={inp} />
+                  </div>
                 </div>
-                <div>
-                  <label style={lbl}>นามสกุล *</label>
-                  <input type="text" placeholder="ใจดี" value={staffForm.lastName}
-                    onChange={e => setStaffForm(p => ({ ...p, lastName: e.target.value }))} style={inp} />
-                </div>
+
+                <button onClick={handleAddBranchSubmit} disabled={addingBranch} className="btn btn-primary" style={{ width: '100%', padding: 14 }}>
+                  {addingBranch ? 'กำลังเพิ่ม...' : 'เพิ่มสาขา — กดบันทึก ใส่รหัส'}
+                </button>
               </div>
+            )}
 
-              {(staffForm.firstName || staffForm.lastName) && (
-                <div style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 8, background: 'var(--navy-50)', fontSize: 13, color: 'var(--ink-soft)' }}>
-                  ชื่อเต็ม: <strong style={{ color: 'var(--navy-900)' }}>{staffForm.prefix}{staffForm.firstName} {staffForm.lastName}</strong>
-                </div>
-              )}
-
-              <div style={{ marginBottom: 12 }}>
-                <label style={lbl}>ชื่อเล่น</label>
-                <input type="text" placeholder="ชาย" value={staffForm.nickname}
-                  onChange={e => setStaffForm(p => ({ ...p, nickname: e.target.value }))} style={inp} />
-              </div>
-
-              <div style={{ marginBottom: 20 }}>
-                <label style={lbl}>สาขา *</label>
-                <select value={staffForm.mainBranchId} onChange={e => setStaffForm(p => ({ ...p, mainBranchId: e.target.value }))} style={inp}>
-                  <option value="">เลือกสาขา</option>
-                  {branchesMg.map(b => <option key={b.id} value={b.id}>{b.name} · {b.id}</option>)}
-                </select>
-              </div>
-
-              <div style={{ background: 'var(--navy-50)', borderRadius: 12, padding: 14, marginBottom: 16, fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.9 }}>
-                หลังเพิ่มแล้ว พนักงานต้องทำ 3 ขั้นตอน<br />
-                1. เปิดแอป Login LINE<br />
-                2. เลือกชื่อตัวเองในหน้าผูกบัญชี<br />
-                3. ลงทะเบียนใบหน้า 5 ท่า
-              </div>
-
-              <button onClick={handleMgAddStaff} disabled={addingStaff} className="btn btn-primary" style={{ width: '100%', padding: 16 }}>
-                {addingStaff ? 'กำลังเพิ่ม...' : 'เพิ่มพนักงาน'}
-              </button>
-            </div>
-          )}
-
-          {/* ── Branches list ── */}
-          {mgTab === 'branches' && (
+            {/* Branch list */}
             <div className="cascade" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {branchesMg.map(b => {
                 const count = staffMg.filter(s => s.mainBranchId === b.id && s.status !== 'Inactive').length;
                 const ready = staffMg.filter(s => s.mainBranchId === b.id && s.status === 'Active' && s.hasDescriptors).length;
                 return (
-                  <div key={b.id} className="card" style={{ padding: '16px 18px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 600, fontSize: 14, lineHeight: 1.5 }}>{b.name}</div>
-                        <div className="eyebrow" style={{ marginTop: 3 }}>[{b.id}] {b.province}{b.openTime ? ` · ${b.openTime}–${b.closeTime}` : ''}</div>
+                  <div key={b.id} className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <button
+                      onClick={() => {
+                        if (editBranchId === b.id) { setEditBranchId(null); return; }
+                        setEditBranchId(b.id);
+                        setBranchEditBuf({
+                          name: b.name, province: b.province,
+                          gps: b.lat ? `${b.lat}, ${b.lng}` : '',
+                          radius: String(b.radius),
+                          openTime: b.openTime, closeTime: b.closeTime,
+                          totalStaff: String(b.totalStaff), minStaff: String(b.minStaff),
+                        });
+                      }}
+                      style={{ width: '100%', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: 14 }}>{b.name}</div>
+                        <div className="eyebrow" style={{ marginTop: 2 }}>[{b.id}] {b.province}{b.openTime ? ` · ${b.openTime}–${b.closeTime}` : ''}</div>
                       </div>
-                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                        <div style={{ fontWeight: 700, fontSize: 22, color: 'var(--navy-900)' }}>{count}</div>
-                        <div style={{ fontSize: 10, color: 'var(--muted)' }}>พนักงาน</div>
+                      <div style={{ textAlign: 'right', marginRight: 8, flexShrink: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: 20, color: 'var(--navy-900)' }}>{count}<span style={{ fontWeight: 400, color: 'var(--muted)', fontSize: 11 }}> คน</span></div>
+                        {count - ready > 0
+                          ? <div style={{ fontSize: 10, color: 'var(--warn)' }}>{ready} พร้อม / {count - ready} รอ</div>
+                          : <div style={{ fontSize: 10, color: 'var(--success)' }}>พร้อมทุกคน</div>
+                        }
                       </div>
-                    </div>
-                    <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--line-2)', display: 'flex', gap: 8 }}>
-                      <span className="chip chip-ok">{ready} พร้อม</span>
-                      {count - ready > 0 && <span className="chip chip-warn">{count - ready} รอลงทะเบียน</span>}
-                      {b.lat !== 0 && <span className="chip" style={{ background:'var(--info-50)', color:'var(--info)', borderColor:'#cddff0' }}>GPS ✓ {b.radius}ม.</span>}
-                    </div>
+                      {b.lat !== 0 && <span className="chip" style={{ background:'var(--info-50)', color:'var(--info)', borderColor:'#cddff0', flexShrink: 0 }}>GPS</span>}
+                      <span style={{ color: 'var(--muted)', fontSize: 13, flexShrink: 0 }}>
+                        {editBranchId === b.id ? '▲' : '✏️'}
+                      </span>
+                    </button>
+
+                    {editBranchId === b.id && (
+                      <div style={{ borderTop: '1px solid var(--line)', padding: '14px 18px', background: 'var(--bg)' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                          <div>
+                            <label style={lbl}>ชื่อสาขา</label>
+                            <input type="text" value={branchEditBuf.name}
+                              onChange={e => setBranchEditBuf(p => ({ ...p, name: e.target.value }))} style={inp} />
+                          </div>
+                          <div>
+                            <label style={lbl}>จังหวัด</label>
+                            <select value={branchEditBuf.province}
+                              onChange={e => setBranchEditBuf(p => ({ ...p, province: e.target.value }))} style={inp}>
+                              {PROVINCES.map(pv => <option key={pv} value={pv}>{pv}</option>)}
+                            </select>
+                          </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, marginBottom: 10 }}>
+                          <div>
+                            <label style={lbl}>พนักงาน</label>
+                            <input type="number" value={branchEditBuf.totalStaff}
+                              onChange={e => setBranchEditBuf(p => ({ ...p, totalStaff: e.target.value }))} style={inp} />
+                          </div>
+                          <div>
+                            <label style={lbl}>ขั้นต่ำ</label>
+                            <input type="number" value={branchEditBuf.minStaff}
+                              onChange={e => setBranchEditBuf(p => ({ ...p, minStaff: e.target.value }))} style={inp} />
+                          </div>
+                          <div>
+                            <label style={lbl}>เปิด</label>
+                            <input type="time" value={branchEditBuf.openTime}
+                              onChange={e => setBranchEditBuf(p => ({ ...p, openTime: e.target.value }))} style={inp} />
+                          </div>
+                          <div>
+                            <label style={lbl}>ปิด</label>
+                            <input type="time" value={branchEditBuf.closeTime}
+                              onChange={e => setBranchEditBuf(p => ({ ...p, closeTime: e.target.value }))} style={inp} />
+                          </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px', gap: 8, marginBottom: 14 }}>
+                          <div>
+                            <label style={lbl}>GPS (lat, lng)</label>
+                            <input type="text" placeholder="15.114112, 104.323573" value={branchEditBuf.gps}
+                              onChange={e => setBranchEditBuf(p => ({ ...p, gps: e.target.value }))} style={inp} />
+                            {branchEditBuf.gps && (
+                              <div style={{ fontSize: 11, marginTop: 3, color: parseGps(branchEditBuf.gps) ? 'var(--success)' : 'var(--red)' }}>
+                                {parseGps(branchEditBuf.gps) ? '✓ ถูกต้อง' : 'รูปแบบไม่ถูกต้อง'}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <label style={lbl}>รัศมี (ม.)</label>
+                            <input type="number" value={branchEditBuf.radius}
+                              onChange={e => setBranchEditBuf(p => ({ ...p, radius: e.target.value }))} style={inp} />
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button onClick={() => handleSaveBranch(b)} className="btn btn-primary" style={{ flex: 1, padding: '10px', fontSize: 13 }}>
+                            บันทึก
+                          </button>
+                          <button onClick={() => setEditBranchId(null)} className="btn btn-ghost" style={{ padding: '10px 14px', fontSize: 13 }}>
+                            ยกเลิก
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
-              {branchesMg.length === 0 && <Empty>ยังไม่มีสาขา — ปลดล็อกแล้วกด &quot;+ สาขา&quot;</Empty>}
+              {branchesMg.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--muted)', fontSize: 14 }}>
+                  ยังไม่มีสาขา — กด &quot;+ เพิ่มสาขา&quot; ด้านบน
+                </div>
+              )}
             </div>
-          )}
-
-          {/* ── Add branch ── */}
-          {mgTab === 'add-branch' && mgUnlocked && (
-            <div className="card spring-pop" style={{ padding: '22px 20px' }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy-900)', marginBottom: 18 }}>เพิ่มสาขาใหม่</div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 10, marginBottom: 12 }}>
-                <div>
-                  <label style={lbl}>รหัสสาขา *</label>
-                  <input type="text" placeholder="B01" value={branchForm.id}
-                    onChange={e => setBranchForm(p => ({ ...p, id: e.target.value }))} style={inp} />
-                </div>
-                <div>
-                  <label style={lbl}>ชื่อสาขา *</label>
-                  <input type="text" placeholder="เซ็นทรัล เชียงใหม่" value={branchForm.name}
-                    onChange={e => setBranchForm(p => ({ ...p, name: e.target.value }))} style={inp} />
-                </div>
-              </div>
-
-              <div style={{ marginBottom: 12 }}>
-                <label style={lbl}>จังหวัด *</label>
-                <select value={branchForm.province} onChange={e => setBranchForm(p => ({ ...p, province: e.target.value }))} style={inp}>
-                  <option value="">เลือกจังหวัด</option>
-                  {PROVINCES.map(pv => <option key={pv} value={pv}>{pv}</option>)}
-                </select>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-                <div>
-                  <label style={lbl}>พนักงานทั้งหมด</label>
-                  <input type="number" placeholder="10" value={branchForm.totalStaff}
-                    onChange={e => setBranchForm(p => ({ ...p, totalStaff: e.target.value }))} style={inp} />
-                </div>
-                <div>
-                  <label style={lbl}>ขั้นต่ำที่ต้องมี</label>
-                  <input type="number" placeholder="5" value={branchForm.minStaff}
-                    onChange={e => setBranchForm(p => ({ ...p, minStaff: e.target.value }))} style={inp} />
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-                <div>
-                  <label style={lbl}>เวลาเปิด</label>
-                  <input type="time" value={branchForm.openTime}
-                    onChange={e => setBranchForm(p => ({ ...p, openTime: e.target.value }))} style={inp} />
-                </div>
-                <div>
-                  <label style={lbl}>เวลาปิด</label>
-                  <input type="time" value={branchForm.closeTime}
-                    onChange={e => setBranchForm(p => ({ ...p, closeTime: e.target.value }))} style={inp} />
-                </div>
-              </div>
-
-              <div style={{ marginBottom: 8 }}>
-                <label style={lbl}>พิกัด GPS (latitude, longitude)</label>
-                <input type="text" placeholder="15.114112, 104.323573" value={branchForm.gps}
-                  onChange={e => setBranchForm(p => ({ ...p, gps: e.target.value }))} style={inp} />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, minHeight: 20 }}>
-                <div style={{ fontSize: 11, color: branchForm.gps && !parseGps(branchForm.gps) ? 'var(--red)' : 'var(--muted)' }}>
-                  {branchForm.gps
-                    ? parseGps(branchForm.gps)
-                      ? `lat ${parseGps(branchForm.gps)!.lat.toFixed(5)}  lng ${parseGps(branchForm.gps)!.lng.toFixed(5)}`
-                      : 'รูปแบบไม่ถูกต้อง'
-                    : null
-                  }
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <label style={{ ...lbl, margin: 0 }}>รัศมี (ม.)</label>
-                  <input type="number" placeholder="50" value={branchForm.radius}
-                    onChange={e => setBranchForm(p => ({ ...p, radius: e.target.value }))}
-                    style={{ ...inp, width: 80 }} />
-                </div>
-              </div>
-
-              <div style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 9, background: 'var(--info-50)', fontSize: 12, color: 'var(--info)', lineHeight: 1.9 }}>
-                เปิด Google Maps → คลิกขวาที่ตำแหน่งสาขา → คัดลอก lat, lng วางในช่องเดียวกัน<br />
-                รัศมีเริ่มต้น <strong>50 ม.</strong> — ปรับเพิ่มถ้าสาขาใหญ่
-              </div>
-
-              <button onClick={handleMgAddBranch} disabled={addingBranch} className="btn btn-primary" style={{ width: '100%', padding: 16 }}>
-                {addingBranch ? 'กำลังเพิ่ม...' : 'เพิ่มสาขา'}
-              </button>
-            </div>
-          )}
+          </div>
 
         </div>
       )}
       {/* ══════════════ END MANAGE ══════════════ */}
 
       <ToastContainer toasts={toasts} />
+
+      {/* ─── Password Modal ─── */}
+      {pwdModal && (
+        <div
+          style={{
+            position: 'fixed', inset: 0,
+            background: 'rgba(0,0,0,.55)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 1000, padding: 20,
+          }}
+          onClick={e => { if (e.target === e.currentTarget) { setPwdModal(null); setPwdVal(''); } }}
+        >
+          <div className="card spring-pop" style={{ width: '100%', maxWidth: 340, padding: '28px 24px' }}>
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+              <div style={{ fontSize: 28, marginBottom: 8 }}>🔐</div>
+              <div style={{ fontWeight: 700, fontSize: 17 }}>ยืนยันการแก้ไข</div>
+              <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>ใส่รหัสผ่านเพื่อบันทึก</div>
+            </div>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={pwdVal}
+              onChange={e => setPwdVal(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && doPwdConfirm()}
+              autoFocus
+              style={{ ...inp, textAlign: 'center', fontSize: 20, letterSpacing: '.2em', marginBottom: 14 }}
+            />
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => { setPwdModal(null); setPwdVal(''); }} className="btn btn-ghost" style={{ flex: 1, padding: 14 }}>
+                ยกเลิก
+              </button>
+              <button onClick={doPwdConfirm} disabled={pwdBusy} className="btn btn-primary" style={{ flex: 1, padding: 14 }}>
+                {pwdBusy ? '...' : 'ยืนยัน'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Sub-components ─────────────────────────────────────────────────────────────
 
 function DateBar({ date, onChange, loading, onRefresh }: { date: string; onChange: (d: string) => void; loading: boolean; onRefresh: () => void }) {
   return (

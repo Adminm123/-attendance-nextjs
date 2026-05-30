@@ -129,14 +129,6 @@ export default function HomeClient({ user }: Props) {
 
   return (
     <>
-      {user && (
-        <div style={{ background:'var(--navy-900)', padding:'6px 16px', display:'flex', justifyContent:'flex-end', borderBottom:'1px solid rgba(255,255,255,.06)' }}>
-          <button onClick={handleLogout} style={{ color:'rgba(255,255,255,.5)', fontSize:11, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
-            ออกจากระบบ
-          </button>
-        </div>
-      )}
-
       <div className="shell" style={{ paddingTop: 20 }}>
 
         {/* ─── Login ─── */}
