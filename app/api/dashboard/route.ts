@@ -17,7 +17,8 @@ export async function GET() {
     adminDb.collection('attendance').where('date', '==', today).get(),
   ]);
 
-  const branches   = branchSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+const branchesRaw = branchSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+const branches = Array.from(new Map(branchesRaw.map(b => [b.id, b])).values());
   const allStaff   = staffSnap.docs.map(d => d.data()) as any[];
   const todayAtt   = attSnap.docs.map(d => d.data()) as any[];
 
