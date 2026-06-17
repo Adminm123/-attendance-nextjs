@@ -33,47 +33,42 @@ export async function GET() {
     });
 
   // ─── สร้างข้อมูล dashboard แยกตามสาขา ───────────────────────────────────────
-  const dashboard = branches.map((branch: any) => {
-    const bId = branch.id;
+// ใช้ Map กรองสาขาที่มี id ซ้ำกันก่อนเริ่มประมวลผล
+const uniqueBranches = Array.from(
+  new Map(branches.map(branch => [branch.id, branch])).values()
+);
 
-    // พนักงานประจำสาขานี้
-    const homeStaff = allStaff.filter(s => s.mainBranchId === bId);
+const dashboard = uniqueBranches.map((branch: any) => {
+  const bId = branch.id;
 
-    // คนที่เช็คอินที่สาขานี้วันนี้
-    const presentHere = Object.values(latestIn).filter(r => r.branchId === bId);
+  // ... (ส่วนการคำนวณที่เหลือเหมือนเดิม) ...
+  const homeStaff = allStaff.filter(s => s.mainBranchId === bId);
+  const presentHere = Object.values(latestIn).filter(r => r.branchId === bId);
+  const crossBranch = homeStaff.filter(s =>
+    latestIn[s.name] && latestIn[s.name].branchId !== bId
+  );
+  const missing = homeStaff.filter(s => !latestIn[s.name]);
 
-    // คนที่ไปช่วยสาขาอื่น (บ้านอยู่สาขานี้ แต่เช็คอินที่อื่น)
-    const crossBranch = homeStaff.filter(s =>
-      latestIn[s.name] && latestIn[s.name].branchId !== bId
-    );
+  const actual  = presentHere.length;
+  const total   = homeStaff.length;
+  const minStaff = branch.minStaff || total;
 
-    // คนที่ยังไม่มา (บ้านอยู่สาขานี้ และยังไม่เช็คอินที่ไหนเลย)
-    const missing = homeStaff.filter(s => !latestIn[s.name]);
+  let colorStatus = 'red';
+  if      (actual >= total)    colorStatus = 'green';
+  else if (actual >= minStaff) colorStatus = 'yellow';
 
-    const actual  = presentHere.length;
-    const total   = homeStaff.length;
-    const minStaff = branch.minStaff || total;
-
-    // สีสถานะ: green=ครบ, yellow=ถึงขั้นต่ำ, red=ต่ำกว่าขั้นต่ำ
-    let colorStatus = 'red';
-    if      (actual >= total)    colorStatus = 'green';
-    else if (actual >= minStaff) colorStatus = 'yellow';
-
-    return {
-      id:          bId,
-      name:        branch.name,
-      province:    branch.province,
-      total,
-      actual,
-      minStaff,
-      colorStatus,
-      openTime:    branch.openTime,
-      closeTime:   branch.closeTime,
-      present:     presentHere.map(r => ({ name: r.name, nickname: r.nickname, time: r.time, isCross: r.isCrossBranch })),
-      crossBranch: crossBranch.map(s => ({ name: s.name, nickname: s.nickname })),
-      missing:     missing.map(s => ({ name: s.name, nickname: s.nickname })),
-    };
-  });
-
-  return NextResponse.json({ success: true, dashboard, date: today });
-}
+  return {
+    id:          bId,
+    name:        branch.name,
+    province:    branch.province,
+    total,
+    actual,
+    minStaff,
+    colorStatus,
+    openTime:    branch.openTime,
+    closeTime:   branch.closeTime,
+    present:     presentHere.map(r => ({ name: r.name, nickname: r.nickname, time: r.time, isCross: r.isCrossBranch })),
+    crossBranch: crossBranch.map(s => ({ name: s.name, nickname: s.nickname })),
+    missing:     missing.map(s => ({ name: s.name, nickname: s.nickname })),
+  };
+});
